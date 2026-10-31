@@ -135,7 +135,7 @@ $(function(){initNavTree('index.html',''); initResizable(); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_README"></a> <b>Hardware-agnostic BNO08x library for Hillcrest / CEVA BNO08x sensors with full-stack, zero-thread driver support</b></p>
-<p><a href="https://en.cppreference.com/w/cpp/11"><img src="https://img.shields.io/badge/C%2B%2B-11-blue.svg" alt="C++" style="pointer-events: none;" class="inline"/></a> <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/N3b3x/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml"><img src="https://github.com/N3b3x/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://n3b3x.github.io/hf-bno08x-driver/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Docs" class="inline"/></a></p>
+<p><a href="https://en.cppreference.com/w/cpp/11"><img src="https://img.shields.io/badge/C%2B%2B-11-blue.svg" alt="C++" style="pointer-events: none;" class="inline"/></a> <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/hardfoc/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml"><img src="https://github.com/hardfoc/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://hardfoc.github.io/hf-bno08x-driver/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Docs" class="inline"/></a></p>
 <h1><a class="anchor" id="autotoc_md2"></a>
 📚 Table of Contents</h1>
 <ol type="1">
@@ -153,7 +153,7 @@ $(function(){initNavTree('index.html',''); initResizable(); });
 <h1><a class="anchor" id="autotoc_md3"></a>
 📦 Overview</h1>
 <blockquote class="doxtable">
-<p>&zwj;<b>📖 <a href="https://n3b3x.github.io/hf-bno08x-driver/">📚🌐 Live Complete Documentation</a></b> - Interactive guides, examples, and step-by-step tutorials </p>
+<p>&zwj;<b>📖 <a href="https://hardfoc.github.io/hf-bno08x-driver/">📚🌐 Live Complete Documentation</a></b> - Interactive guides, examples, and step-by-step tutorials </p>
 </blockquote>
 <p><b>HF-BNO08x</b> is a hardware-agnostic C++ library for the <b>Hillcrest / CEVA BNO08x</b> family of 9-axis IMU sensors (BNO080, <a class="el" href="classBNO085.html" title="Unified driver for the BNO08x IMU – SH-2 mode, RVC mode, and DFU.">BNO085</a>, BNO086). The BNO08x sensors provide fused orientation data, calibrated IMU measurements, activity detection, step counting, and gesture recognition through the SH-2 (Sensor Hub 2) protocol.</p>
 <p>The driver uses a CRTP-based communication interface design, allowing it to run on any platform (ESP32, STM32, Arduino, etc.) with zero runtime overhead. It provides access to all SH-2 sensor reports including rotation vectors, accelerometer, gyroscope, magnetometer, step counter, tap detector, and more. The driver also supports RVC (Robot Vacuum Cleaner) mode for simplified UART streaming and DFU (Device Firmware Update) for firmware updates.</p>

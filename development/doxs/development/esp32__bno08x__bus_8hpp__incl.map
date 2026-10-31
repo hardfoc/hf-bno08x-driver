@@ -1,24 +1,24 @@
 <map id="examples/esp32/main/esp32_bno08x_bus.hpp" name="examples/esp32/main/esp32_bno08x_bus.hpp">
-<area shape="rect" id="Node000001" title="ESP32 I2C communication interface implementation for BNO08x driver." alt="" coords="432,5,610,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="542,181,609,207"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="431,35,312,44,181,57,72,75,35,85,16,95,10,104,8,113,10,122,16,131,42,144,91,155,236,172,399,183,529,189,528,194,399,188,236,178,90,160,40,149,12,135,5,124,3,113,5,102,12,91,33,80,71,69,181,52,311,39,431,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="26,101,104,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="432,39,283,61,199,77,116,96,106,99,105,94,115,91,198,71,282,56,431,34"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="128,101,232,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="439,48,244,96,231,99,230,94,243,91,437,43"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="256,101,402,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="480,48,368,98,366,93,478,43"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="427,101,508,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="511,47,484,90,480,87,507,44"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="532,101,616,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="535,44,562,87,557,90,530,47"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="641,101,740,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="559,43,657,92,654,97,557,48"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="764,101,915,126"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="591,43,785,95,783,100,590,48"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="940,101,1057,126"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="611,36,760,59,928,91,945,95,944,100,927,96,759,64,610,41"/>
-<area shape="rect" id="Node000011" href="$bno08x__comm__interface_8hpp.html" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="1081,93,1244,133"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="611,33,816,56,1068,91,1067,96,815,61,610,38"/>
-<area shape="poly" id="edge11_Node000011_Node000002" title=" " alt="" coords="1081,134,1069,136,818,170,623,191,623,186,817,165,1068,131,1080,129"/>
+<area shape="rect" id="Node000001" title="ESP32 I2C communication interface implementation for BNO08x driver." alt="" coords="429,5,607,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="540,191,605,218"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="426,29,317,33,193,43,136,52,85,64,44,80,17,100,10,110,8,120,10,131,17,141,42,153,91,164,234,182,395,193,527,201,522,202,395,198,234,187,90,170,41,158,13,145,5,133,3,120,5,108,13,96,41,75,83,59,134,47,193,38,317,28,431,27"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="28,106,104,134"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="426,39,281,63,198,80,116,101,109,103,106,98,114,95,196,74,280,58,431,37"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="128,106,231,134"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="427,51,244,101,233,104,231,99,242,95,431,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="255,106,402,134"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="475,50,371,102,368,97,470,51"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="426,106,506,134"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="508,49,483,95,479,91,503,52"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="530,106,613,134"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="532,48,558,94,553,92,529,53"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="637,106,735,134"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="559,48,651,99,645,99,558,53"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="759,106,909,134"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="594,48,776,101,771,102,593,53"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="933,106,1049,134"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="607,38,755,62,921,95,938,102,933,102,920,101,754,67,607,44"/>
+<area shape="rect" id="Node000011" href="$bno08x__comm__interface_8hpp.html" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="1074,98,1236,143"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="607,35,810,58,1061,97,1056,98,809,64,607,40"/>
+<area shape="poly" id="edge11_Node000011_Node000002" title=" " alt="" coords="1077,140,1062,145,814,181,621,201,620,196,814,175,1061,140,1071,141"/>
 </map>

@@ -1,21 +1,21 @@
 <map id="SensorEvent" name="SensorEvent">
-<area shape="rect" id="Node000001" title="Container for a single decoded SH&#45;2 sensor report." alt="" coords="627,261,729,286"/>
-<area shape="rect" id="Node000002" href="$structVector3.html" title="Three&#45;axis vector with sensor accuracy indicator." alt="" coords="17,73,88,98"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,64,123,49,153,44,176,44,230,49,288,52,339,50,429,46,470,49,512,59,556,78,604,110,622,126,637,145,658,188,671,229,677,260,672,261,666,230,653,190,632,148,618,130,601,114,554,83,511,64,470,54,429,52,340,55,288,57,229,55,176,49,153,50,125,55,88,69"/>
-<area shape="rect" id="Node000008" href="$structDeadReckoningPoseEvent.html" title="Dead reckoning position/orientation/velocity payload." alt="" coords="253,122,444,147"/>
-<area shape="poly" id="edge8_Node000008_Node000002" title=" " alt="" coords="102,91,272,119,271,125,101,96"/>
-<area shape="rect" id="Node000003" href="$structQuaternion.html" title="Unit quaternion with sensor accuracy indicator." alt="" coords="5,142,100,167"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="114,159,370,193,506,214,603,236,655,258,653,263,602,241,505,220,370,198,113,164"/>
-<area shape="poly" id="edge9_Node000008_Node000003" title=" " alt="" coords="114,148,253,138,253,144,114,153"/>
-<area shape="rect" id="Node000004" href="$structRawVector3.html" title="Raw integer 3&#45;axis sample (ADC counts) with optional metadata." alt="" coords="299,235,398,261"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="412,250,627,267,626,272,412,255"/>
-<area shape="rect" id="Node000005" href="$structTapEvent.html" title="Tap detector event details." alt="" coords="308,285,389,310"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="403,297,496,297,602,289,633,283,634,289,603,295,497,303,403,302"/>
-<area shape="rect" id="Node000006" href="$structActivityClassifierEvent.html" title="Personal activity classifier payload." alt="" coords="264,334,433,359"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="447,345,524,338,602,319,634,303,660,284,663,289,636,307,604,324,525,343,448,350"/>
-<area shape="rect" id="Node000007" href="$structRawOpticalFlowEvent.html" title="Raw optical flow payload from SH2_RAW_OPTICAL_FLOW." alt="" coords="267,383,431,409"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="445,399,524,391,564,381,601,364,624,347,643,326,668,285,673,288,647,329,628,351,604,369,566,386,525,396,445,405"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="458,127,533,138,570,149,604,166,629,187,649,212,674,259,669,262,645,215,626,190,601,170,568,154,531,143,458,133"/>
-<area shape="rect" id="Node000009" href="$structWheelEncoderEvent.html" title="Wheel encoder payload." alt="" coords="273,433,425,458"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="439,454,479,454,522,450,563,438,601,419,617,405,631,389,652,352,665,315,672,286,677,287,670,316,657,354,635,392,621,409,604,424,565,443,523,455,480,460,439,460"/>
+<area shape="rect" id="Node000001" title="Container for a single decoded SH&#45;2 sensor report." alt="" coords="624,276,726,304"/>
+<area shape="rect" id="Node000002" href="$structVector3.html" title="Three&#45;axis vector with sensor accuracy indicator." alt="" coords="17,84,87,112"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,73,122,55,151,50,175,49,228,55,286,58,338,57,427,54,469,57,510,68,554,88,602,120,619,137,634,156,656,200,668,242,674,277,670,274,663,244,651,202,630,159,615,140,598,124,552,92,509,73,468,63,427,59,338,62,286,63,227,61,175,55,152,55,123,60,87,77"/>
+<area shape="rect" id="Node000008" href="$structDeadReckoningPoseEvent.html" title="Dead reckoning position/orientation/velocity payload." alt="" coords="252,133,442,161"/>
+<area shape="poly" id="edge8_Node000008_Node000002" title=" " alt="" coords="102,104,262,131,258,135,103,109"/>
+<area shape="rect" id="Node000003" href="$structQuaternion.html" title="Unit quaternion with sensor accuracy indicator." alt="" coords="5,156,99,184"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="114,174,370,205,504,226,601,249,654,276,649,276,599,254,503,232,369,210,114,179"/>
+<area shape="poly" id="edge9_Node000008_Node000003" title=" " alt="" coords="113,163,253,152,250,157,115,168"/>
+<area shape="rect" id="Node000004" href="$structRawVector3.html" title="Raw integer 3&#45;axis sample (ADC counts) with optional metadata." alt="" coords="298,249,396,277"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="411,266,626,285,621,287,412,271"/>
+<area shape="rect" id="Node000005" href="$structTapEvent.html" title="Tap detector event details." alt="" coords="307,301,387,329"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="403,315,495,315,600,307,629,304,624,305,600,312,496,320,403,320"/>
+<area shape="rect" id="Node000006" href="$structActivityClassifierEvent.html" title="Personal activity classifier payload." alt="" coords="263,353,431,381"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="446,365,523,357,562,349,599,338,631,321,656,305,661,303,633,326,601,343,563,354,523,362,447,370"/>
+<area shape="rect" id="Node000007" href="$structRawOpticalFlowEvent.html" title="Raw optical flow payload from SH2_RAW_OPTICAL_FLOW." alt="" coords="265,405,428,433"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="443,422,522,414,562,403,599,386,622,368,641,346,665,306,670,303,645,349,625,372,601,390,564,408,523,419,444,427"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="457,141,531,152,567,164,601,181,626,202,646,227,671,276,666,275,642,230,623,206,599,185,565,169,530,158,458,146"/>
+<area shape="rect" id="Node000009" href="$structWheelEncoderEvent.html" title="Wheel encoder payload." alt="" coords="271,457,422,485"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="438,480,478,480,520,474,561,463,598,443,615,429,629,412,650,373,663,334,670,306,674,302,668,335,655,375,633,415,619,433,602,448,563,468,521,480,479,485,438,485"/>
 </map>

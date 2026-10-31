@@ -1,22 +1,22 @@
 <map id="examples/esp32/main/esp32_uart_rvc_bus.hpp" name="examples/esp32/main/esp32_uart_rvc_bus.hpp">
-<area shape="rect" id="Node000001" title="ESP32 UART CommInterface implementation for BNO08x RVC mode." alt="" coords="337,5,520,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="469,181,535,207"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="337,31,247,36,150,47,67,66,37,79,16,95,8,114,10,122,16,131,38,142,79,153,202,169,341,181,455,188,455,193,341,186,201,175,78,158,36,147,12,135,5,124,3,113,12,92,34,75,66,61,149,42,246,31,337,25"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="26,101,130,126"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="343,48,143,96,130,99,128,94,141,91,342,43"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="155,101,257,126"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="381,48,249,98,247,93,379,43"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="281,101,363,126"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="407,48,349,94,346,90,403,44"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="387,101,471,126"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="431,46,431,87,426,87,426,46"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="495,101,594,126"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="456,43,520,90,517,95,453,48"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="619,101,769,126"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="488,43,646,94,645,99,486,48"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="794,101,911,126"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="521,39,783,91,799,95,798,100,782,96,520,45"/>
-<area shape="rect" id="Node000010" href="$bno08x__comm__interface_8hpp.html" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="935,93,1098,133"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="521,35,702,58,922,91,922,96,701,63,520,40"/>
-<area shape="poly" id="edge10_Node000010_Node000002" title=" " alt="" coords="936,134,924,136,715,168,549,190,549,184,714,163,923,131,935,129"/>
+<area shape="rect" id="Node000001" title="ESP32 UART CommInterface implementation for BNO08x RVC mode." alt="" coords="335,5,517,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="466,191,532,218"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="332,32,244,40,149,51,67,71,37,84,17,100,10,110,8,120,10,131,17,141,38,152,79,162,200,179,452,198,450,203,199,184,78,167,36,157,13,145,5,133,3,120,5,108,13,96,34,79,66,66,149,46,244,34,337,30"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="27,106,131,134"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="333,52,144,101,133,104,131,99,142,95,335,47"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="155,106,256,134"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="371,52,252,103,250,98,375,49"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="280,106,361,134"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="403,49,349,98,346,94,398,52"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="384,106,467,134"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="427,48,428,92,423,90,424,52"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="492,106,589,134"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="454,48,514,97,509,96,452,53"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="613,106,764,134"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="489,48,638,101,633,101,488,53"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="788,106,904,134"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="518,42,641,65,776,95,792,102,787,102,774,101,640,71,517,47"/>
+<area shape="rect" id="Node000010" href="$bno08x__comm__interface_8hpp.html" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="929,98,1091,143"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="517,37,697,60,916,97,911,98,696,66,517,42"/>
+<area shape="poly" id="edge10_Node000010_Node000002" title=" " alt="" coords="931,140,917,145,711,178,547,200,547,195,711,173,916,140,926,141"/>
 </map>

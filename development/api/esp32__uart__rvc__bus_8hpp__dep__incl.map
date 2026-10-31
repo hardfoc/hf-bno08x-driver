@@ -1,5 +1,5 @@
 <map id="examples/esp32/main/esp32_uart_rvc_bus.hpp" name="examples/esp32/main/esp32_uart_rvc_bus.hpp">
-<area shape="rect" id="Node000001" title="ESP32 UART CommInterface implementation for BNO08x RVC mode." alt="" coords="5,5,188,45"/>
-<area shape="rect" id="Node000002" href="$rvc__mode__example_8cpp.html" title="RVC (Rotation Vector Computation) mode example." alt="" coords="6,93,187,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,59,99,93,94,93,94,59"/>
+<area shape="rect" id="Node000001" title="ESP32 UART CommInterface implementation for BNO08x RVC mode." alt="" coords="5,5,188,50"/>
+<area shape="rect" id="Node000002" href="$rvc__mode__example_8cpp.html" title="RVC (Rotation Vector Computation) mode example." alt="" coords="6,98,187,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,64,99,99,94,97,95,68"/>
 </map>

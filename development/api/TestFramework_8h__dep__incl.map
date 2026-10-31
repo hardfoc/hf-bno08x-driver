@@ -1,7 +1,7 @@
 <map id="examples/esp32/main/TestFramework.h" name="examples/esp32/main/TestFramework.h">
-<area shape="rect" id="Node000001" title="Shared testing framework for ESP32&#45;C6 comprehensive test suites." alt="" coords="104,5,271,45"/>
-<area shape="rect" id="Node000002" href="$dfu__workflow__test_8cpp.html" title="DFU workflow integration test for BNO08x on ESP32." alt="" coords="5,101,177,141"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,57,113,103,109,99,156,53"/>
-<area shape="rect" id="Node000003" href="$driver__integration__test_8cpp.html" title="Comprehensive Integration Test Suite for BNO08x Driver." alt="" coords="201,93,368,148"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,53,259,91,255,95,215,57"/>
+<area shape="rect" id="Node000001" title="Shared testing framework for ESP32&#45;C6 comprehensive test suites." alt="" coords="104,5,270,50"/>
+<area shape="rect" id="Node000002" href="$dfu__workflow__test_8cpp.html" title="DFU workflow integration test for BNO08x on ESP32." alt="" coords="5,106,177,151"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,60,114,108,110,104,153,62"/>
+<area shape="rect" id="Node000003" href="$driver__integration__test_8cpp.html" title="Comprehensive Integration Test Suite for BNO08x Driver." alt="" coords="200,98,366,160"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,59,256,98,251,97,217,64"/>
 </map>

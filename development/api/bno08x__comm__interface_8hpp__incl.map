@@ -1,5 +1,5 @@
 <map id="inc/bno08x_comm_interface.hpp" name="inc/bno08x_comm_interface.hpp">
-<area shape="rect" id="Node000001" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="5,5,240,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="89,79,156,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,31,125,65,120,65,120,31"/>
+<area shape="rect" id="Node000001" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="5,5,239,33"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="89,81,155,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,32,124,66,120,64,120,36"/>
 </map>

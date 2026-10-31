@@ -8,8 +8,8 @@ maintainers:
 license: "GPL-3.0"
 
 url: https://www.ceva-ip.com/wp-content/uploads/BNO080_085-Datasheet.pdf
-repository: https://github.com/N3b3x/hf-bno08x-driver
-issues: https://github.com/N3b3x/hf-bno08x-driver/issues
+repository: https://github.com/hardfoc/hf-bno08x-driver
+issues: https://github.com/hardfoc/hf-bno08x-driver/issues
 
 targets:
   - esp32

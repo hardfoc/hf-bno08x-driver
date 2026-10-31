@@ -1,5 +1,5 @@
-warning: ignoring unsupported tag 'PAGE_OUTLINE_PANEL' at line 1768, file /tmp/doxyfile.ygbpKR
-warning: Tag 'DOT_TRANSPARENT' at line 2791 of file '/tmp/doxyfile.ygbpKR' has become obsolete.
+warning: ignoring unsupported tag 'PAGE_OUTLINE_PANEL' at line 1768, file /tmp/doxyfile.TZCEYF
+warning: Tag 'DOT_TRANSPARENT' at line 2791 of file '/tmp/doxyfile.TZCEYF' has become obsolete.
          To avoid this warning please remove this line from your configuration file or upgrade it using "doxygen -u"
 Doxygen version used: 1.10.0 (ebc57c6dd303a980bd19dd74b8b61c8f3f5180ca)
 Searching for include files...
@@ -11,8 +11,8 @@ Searching for dia files...
 Searching for files to exclude
 Searching INPUT for files to process...
 Searching for files in directory /home/runner/work/hf-bno08x-driver/hf-bno08x-driver/src
-Searching for files in directory /home/runner/work/hf-bno08x-driver/hf-bno08x-driver/src/dfu
 Searching for files in directory /home/runner/work/hf-bno08x-driver/hf-bno08x-driver/src/sh2
+Searching for files in directory /home/runner/work/hf-bno08x-driver/hf-bno08x-driver/src/dfu
 Searching for files in directory /home/runner/work/hf-bno08x-driver/hf-bno08x-driver/inc
 Searching for files in directory /home/runner/work/hf-bno08x-driver/hf-bno08x-driver/examples/esp32/main
 Reading and parsing tag files

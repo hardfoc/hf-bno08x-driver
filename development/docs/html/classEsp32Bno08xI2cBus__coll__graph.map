@@ -1,5 +1,5 @@
 <map id="Esp32Bno08xI2cBus" name="Esp32Bno08xI2cBus">
-<area shape="rect" id="Node000001" title="ESP32 implementation of bno08x::CommInterface using ESP&#45;IDF I2C master driver." alt="" coords="20,93,173,119"/>
-<area shape="rect" id="Node000002" href="$classbno08x_1_1CommInterface.html" title=" " alt="" coords="5,5,188,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,59,99,93,94,93,94,59"/>
+<area shape="rect" id="Node000001" title="ESP32 implementation of bno08x::CommInterface using ESP&#45;IDF I2C master driver." alt="" coords="20,98,173,126"/>
+<area shape="rect" id="Node000002" href="$classbno08x_1_1CommInterface.html" title=" " alt="" coords="5,5,188,50"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,64,99,98,94,96,95,68"/>
 </map>

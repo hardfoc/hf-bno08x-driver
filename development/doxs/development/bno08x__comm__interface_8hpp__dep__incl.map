@@ -1,33 +1,33 @@
 <map id="inc/bno08x_comm_interface.hpp" name="inc/bno08x_comm_interface.hpp">
-<area shape="rect" id="Node000001" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="779,5,1013,31"/>
-<area shape="rect" id="Node000002" href="$esp32__bno08x__bus_8hpp.html" title="ESP32 I2C communication interface implementation for BNO08x driver." alt="" coords="613,79,792,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="856,38,750,81,748,76,854,33"/>
-<area shape="rect" id="Node000009" href="$esp32__uart__rvc__bus_8hpp.html" title="ESP32 UART CommInterface implementation for BNO08x RVC mode." alt="" coords="1174,79,1357,119"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="963,31,1177,76,1176,81,962,36"/>
-<area shape="rect" id="Node000011" href="$bno08x_8hpp.html" title="High&#45;level C++ driver for the BNO08x 9&#45;axis IMU family." alt="" coords="835,86,957,111"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="899,44,899,86,893,86,893,44"/>
-<area shape="rect" id="Node000003" href="$basic__polling__example_8cpp.html" title="Basic polling mode example with orientation and linear acceleration." alt="" coords="5,174,208,214"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="600,114,422,137,220,169,184,177,183,171,220,164,422,132,600,109"/>
-<area shape="rect" id="Node000004" href="$dfu__example_8cpp.html" title="Device Firmware Update (DFU) example for BNO08x." alt="" coords="233,174,399,214"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="604,124,411,169,383,177,382,171,410,164,602,119"/>
-<area shape="rect" id="Node000005" href="$dfu__workflow__test_8cpp.html" title="DFU workflow integration test for BNO08x on ESP32." alt="" coords="423,174,595,214"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="652,127,550,176,547,172,650,122"/>
-<area shape="rect" id="Node000006" href="$driver__integration__test_8cpp.html" title="Comprehensive Integration Test Suite for BNO08x Driver." alt="" coords="619,167,786,221"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="705,132,705,167,700,167,700,132"/>
-<area shape="rect" id="Node000007" href="$event__driven__callback__example_8cpp.html" title="Event&#45;driven callback example with step counter and tap detector." alt="" coords="810,167,982,221"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="755,122,843,164,840,169,753,127"/>
-<area shape="rect" id="Node000008" href="$full__features__example_8cpp.html" title="Comprehensive example demonstrating all BNO08x features." alt="" coords="1006,174,1205,214"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="799,119,994,164,1025,171,1024,176,993,169,797,124"/>
-<area shape="rect" id="Node000010" href="$rvc__mode__example_8cpp.html" title="RVC (Rotation Vector Computation) mode example." alt="" coords="1369,174,1551,214"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1318,122,1422,172,1420,176,1316,127"/>
-<area shape="poly" id="edge11_Node000011_Node000003" title=" " alt="" coords="832,117,804,121,640,139,512,144,384,150,220,169,182,177,181,171,220,164,383,145,512,139,640,133,804,116,832,111"/>
-<area shape="poly" id="edge12_Node000011_Node000004" title=" " alt="" coords="830,117,804,121,694,136,607,143,521,151,411,169,380,176,379,171,410,164,520,146,607,138,693,131,804,116,830,111"/>
-<area shape="poly" id="edge13_Node000011_Node000005" title=" " alt="" coords="832,117,607,169,579,176,578,171,606,164,830,112"/>
-<area shape="poly" id="edge14_Node000011_Node000006" title=" " alt="" coords="861,120,758,169,756,164,859,115"/>
-<area shape="poly" id="edge15_Node000011_Node000007" title=" " alt="" coords="899,125,899,166,893,166,893,125"/>
-<area shape="poly" id="edge16_Node000011_Node000008" title=" " alt="" coords="935,114,1064,172,1062,176,933,119"/>
-<area shape="poly" id="edge17_Node000011_Node000010" title=" " alt="" coords="971,106,1148,129,1358,164,1391,171,1390,177,1357,169,1147,134,970,111"/>
-<area shape="rect" id="Node000012" href="$bno08x_8ipp.html" title="Template method implementations for the BNO085 driver class." alt="" coords="1228,181,1345,207"/>
-<area shape="poly" id="edge18_Node000011_Node000012" title=" " alt="" coords="970,111,1081,134,1205,164,1249,179,1247,184,1203,169,1080,139,969,116"/>
-<area shape="poly" id="edge19_Node000012_Node000011" title=" " alt="" coords="1256,179,1227,169,1083,134,957,111,958,106,1084,129,1229,164,1258,174"/>
+<area shape="rect" id="Node000001" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="773,5,1007,33"/>
+<area shape="rect" id="Node000002" href="$esp32__bno08x__bus_8hpp.html" title="ESP32 I2C communication interface implementation for BNO08x driver." alt="" coords="609,81,787,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="848,39,750,83,748,78,843,40"/>
+<area shape="rect" id="Node000009" href="$esp32__uart__rvc__bus_8hpp.html" title="ESP32 UART CommInterface implementation for BNO08x RVC mode." alt="" coords="1168,81,1350,126"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="964,34,1170,82,1165,82,964,40"/>
+<area shape="rect" id="Node000011" href="$bno08x_8hpp.html" title="High&#45;level C++ driver for the BNO08x 9&#45;axis IMU family." alt="" coords="830,90,950,117"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="892,47,892,91,888,88,888,51"/>
+<area shape="rect" id="Node000003" href="$basic__polling__example_8cpp.html" title="Basic polling mode example with orientation and linear acceleration." alt="" coords="5,182,207,227"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="591,117,418,142,220,176,185,184,184,179,219,171,418,137,596,116"/>
+<area shape="rect" id="Node000004" href="$dfu__example_8cpp.html" title="Device Firmware Update (DFU) example for BNO08x." alt="" coords="231,182,397,227"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="597,127,409,176,382,184,380,179,408,171,591,128"/>
+<area shape="rect" id="Node000005" href="$dfu__workflow__test_8cpp.html" title="DFU workflow integration test for BNO08x on ESP32." alt="" coords="420,182,592,227"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="645,132,549,184,547,179,640,134"/>
+<area shape="rect" id="Node000006" href="$driver__integration__test_8cpp.html" title="Comprehensive Integration Test Suite for BNO08x Driver." alt="" coords="615,174,781,235"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="700,139,700,175,696,172,696,143"/>
+<area shape="rect" id="Node000007" href="$event__driven__callback__example_8cpp.html" title="Event&#45;driven callback example with step counter and tap detector." alt="" coords="804,174,976,235"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="754,131,834,173,829,173,753,136"/>
+<area shape="rect" id="Node000008" href="$full__features__example_8cpp.html" title="Comprehensive example demonstrating all BNO08x features." alt="" coords="1000,182,1198,227"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="802,126,988,171,1021,182,1015,181,987,176,801,131"/>
+<area shape="rect" id="Node000010" href="$rvc__mode__example_8cpp.html" title="RVC (Rotation Vector Computation) mode example." alt="" coords="1362,182,1543,227"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1316,131,1413,182,1408,181,1315,136"/>
+<area shape="poly" id="edge11_Node000011_Node000003" title=" " alt="" coords="827,120,798,128,711,140,636,146,509,151,381,156,307,163,220,176,182,184,181,179,219,171,306,158,381,151,508,146,636,141,710,135,798,123,822,121"/>
+<area shape="poly" id="edge12_Node000011_Node000004" title=" " alt="" coords="825,121,798,128,689,143,603,150,518,158,409,176,378,184,377,179,408,171,517,152,603,145,688,138,798,123,820,121"/>
+<area shape="poly" id="edge13_Node000011_Node000005" title=" " alt="" coords="822,121,604,176,576,184,575,179,603,171,817,122"/>
+<area shape="poly" id="edge14_Node000011_Node000006" title=" " alt="" coords="854,124,758,176,756,170,848,125"/>
+<area shape="poly" id="edge15_Node000011_Node000007" title=" " alt="" coords="892,131,892,175,888,172,888,134"/>
+<area shape="poly" id="edge16_Node000011_Node000008" title=" " alt="" coords="932,122,1056,182,1051,181,931,127"/>
+<area shape="poly" id="edge17_Node000011_Node000010" title=" " alt="" coords="965,110,1143,133,1352,171,1386,182,1381,181,1351,176,1142,139,965,115"/>
+<area shape="rect" id="Node000012" href="$bno08x_8ipp.html" title="Template method implementations for the BNO085 driver class." alt="" coords="1222,191,1339,218"/>
+<area shape="poly" id="edge18_Node000011_Node000012" title=" " alt="" coords="965,116,1077,139,1199,171,1244,190,1239,190,1197,176,1075,144,965,121"/>
+<area shape="poly" id="edge19_Node000012_Node000011" title=" " alt="" coords="1247,184,1221,176,1076,139,951,116,951,110,1078,134,1223,171,1253,184"/>
 </map>
