@@ -211,7 +211,7 @@ seo:
   name: "HardFOC BNO08x Driver"
   description: >
     Hardware-agnostic BNO08x library for Hillcrest / CEVA BNO08x sensors with full-stack, zero-thread driver support
-  url: "https://n3b3x.github.io/hf-bno08x-driver"
+  url: "https://hardfoc.github.io/hf-bno08x-driver"
   twitter:
     card: "summary_large_image"
     site: "@n3b3x"

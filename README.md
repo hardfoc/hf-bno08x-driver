@@ -12,8 +12,8 @@ permalink: /
 
 [![C++](https://img.shields.io/badge/C%2B%2B-11-blue.svg)](https://en.cppreference.com/w/cpp/11)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![CI](https://github.com/N3b3x/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/N3b3x/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml)
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://n3b3x.github.io/hf-bno08x-driver/)
+[![CI](https://github.com/hardfoc/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/hardfoc/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://hardfoc.github.io/hf-bno08x-driver/)
 
 ## 📚 Table of Contents
 1. [Overview](#-overview)
@@ -29,7 +29,7 @@ permalink: /
 
 ## 📦 Overview
 
-> **📖 [📚🌐 Live Complete Documentation](https://n3b3x.github.io/hf-bno08x-driver/)** -
+> **📖 [📚🌐 Live Complete Documentation](https://hardfoc.github.io/hf-bno08x-driver/)** -
 > Interactive guides, examples, and step-by-step tutorials
 
 **HF-BNO08x** is a hardware-agnostic C++ library for the **Hillcrest / CEVA BNO08x** family of 9-axis IMU sensors (BNO080, BNO085, BNO086). The BNO08x sensors provide fused orientation data, calibrated IMU measurements, activity detection, step counting, and gesture recognition through the SH-2 (Sensor Hub 2) protocol.
