@@ -1,7 +1,7 @@
 <map id="src/dfu/firmware.h" name="src/dfu/firmware.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,145,31"/>
-<area shape="rect" id="Node000002" href="$HcBin_8h.html" title="API Definition for HcBin objects (Hillcrest Binary Files)." alt="" coords="39,79,111,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,31,78,65,73,65,73,31"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="40,152,111,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="78,104,78,138,73,138,73,104"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,145,33"/>
+<area shape="rect" id="Node000002" href="$HcBin_8h.html" title="API Definition for HcBin objects (Hillcrest Binary Files)." alt="" coords="39,81,111,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,31,78,66,72,65,74,36"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="40,157,110,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="77,107,78,142,72,140,73,111"/>
 </map>
