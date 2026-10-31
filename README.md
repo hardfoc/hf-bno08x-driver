@@ -12,15 +12,15 @@ This branch contains the versioned documentation for this repository.
 
 ## Access
 
-- **Latest**: [https://N3b3x.github.io/hf-bno08x-driver/](https://N3b3x.github.io/hf-bno08x-driver/)
-- **All Versions**: [https://N3b3x.github.io/hf-bno08x-driver/version_selector.html](https://N3b3x.github.io/hf-bno08x-driver/version_selector.html)
+- **Latest**: [https://hardfoc.github.io/hf-bno08x-driver/](https://hardfoc.github.io/hf-bno08x-driver/)
+- **All Versions**: [https://hardfoc.github.io/hf-bno08x-driver/version_selector.html](https://hardfoc.github.io/hf-bno08x-driver/version_selector.html)
 
 ## Current Version
 
 - **Version**: development
 - **Type**: development
-- **Deployed**: 2026-06-15T01:46:03Z
-- **Commit**: 1a351ee4ab8d4aaaae5cb8f199c19b63a75a8396
+- **Deployed**: 2026-10-31T08:18:41Z
+- **Commit**: 9936d273ab9ba8024f66a97fcbbf17c9ef941dc6
 
 ---
 
