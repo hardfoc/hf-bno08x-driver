@@ -21,7 +21,7 @@ public:
 
   /** Obtain an HcBin handle for the DFU helpers. */
   const HcBin_t& hcbin() const {
-    pending_ = this;
+    pending() = this;
     return impl_;
   }
 
@@ -34,8 +34,18 @@ private:
   static int getAppData(uint8_t* packet, uint32_t offset, uint32_t len);
 
   static const HcBin_t impl_;
-  static thread_local const MemoryFirmware* pending_;
-  static thread_local const MemoryFirmware* active_;
+
+  // Per-thread adapter state, kept in function-local statics: Apple clang emits a
+  // non-weak thread-local wrapper for an inline thread_local static data member, so
+  // two translation units using MemoryFirmware failed to link with duplicate symbols.
+  static const MemoryFirmware*& pending() noexcept {
+    static thread_local const MemoryFirmware* p = nullptr;
+    return p;
+  }
+  static const MemoryFirmware*& active() noexcept {
+    static thread_local const MemoryFirmware* a = nullptr;
+    return a;
+  }
 
   const uint8_t* data_;
   uint32_t len_;
@@ -47,45 +57,43 @@ private:
 // --- Implementation ---------------------------------------------------------
 
 inline int MemoryFirmware::open() {
-  if (active_ != nullptr) {
+  if (active() != nullptr) {
     return -1;
   }
-  if (pending_ == nullptr) {
+  if (pending() == nullptr) {
     return -1;
   }
-  active_ = pending_;
-  pending_ = nullptr;
+  active() = pending();
+  pending() = nullptr;
   return 0;
 }
 inline int MemoryFirmware::close() {
-  active_ = nullptr;
-  pending_ = nullptr;
+  active() = nullptr;
+  pending() = nullptr;
   return 0;
 }
 inline const char* MemoryFirmware::getMeta(const char* key) {
-  if (!active_)
+  if (!active())
     return nullptr;
   if (std::strcmp(key, "FW-Format") == 0)
-    return active_->format_;
+    return active()->format_;
   if (std::strcmp(key, "SW-Part-Number") == 0)
-    return active_->part_;
+    return active()->part_;
   return nullptr;
 }
 inline uint32_t MemoryFirmware::getAppLen() {
-  return active_ ? active_->len_ : 0;
+  return active() ? active()->len_ : 0;
 }
 inline uint32_t MemoryFirmware::getPacketLen() {
-  return active_ ? active_->packet_len_ : 0;
+  return active() ? active()->packet_len_ : 0;
 }
 inline int MemoryFirmware::getAppData(uint8_t* packet, uint32_t offset, uint32_t len) {
-  if (!active_ || offset > active_->len_ || len > (active_->len_ - offset))
+  if (!active() || offset > active()->len_ || len > (active()->len_ - offset))
     return -1;
-  std::memcpy(packet, active_->data_ + offset, len);
+  std::memcpy(packet, active()->data_ + offset, len);
   return 0;
 }
 
 inline const HcBin_t MemoryFirmware::impl_ = {
     MemoryFirmware::open,      MemoryFirmware::close,        MemoryFirmware::getMeta,
     MemoryFirmware::getAppLen, MemoryFirmware::getPacketLen, MemoryFirmware::getAppData};
-inline thread_local const MemoryFirmware* MemoryFirmware::pending_ = nullptr;
-inline thread_local const MemoryFirmware* MemoryFirmware::active_ = nullptr;

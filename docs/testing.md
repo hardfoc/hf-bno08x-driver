@@ -20,6 +20,7 @@ ctest --test-dir build-host --output-on-failure
 | --- | --- |
 | [`tests/test_rvc.cpp`](../tests/test_rvc.cpp) | UART-RVC parsing: the datasheet's example frame, resynchronisation, checksum rejection, open and close |
 | [`tests/test_driver.cpp`](../tests/test_driver.cpp) | Interface and state guards, error codes, `HardwareReset()` and `EnterBootloader()` pin sequences, DFU image checks |
+| [`tests/test_memory_firmware.cpp`](../tests/test_memory_firmware.cpp) | In-memory DFU image checks from a second source file (the `MemoryFirmware` adapter links from more than one) |
 | [`tests/test_gpio_status.cpp`](../tests/test_gpio_status.cpp) | GPIO errors from `GpioSet()` reaching the pin calls and the bootloader helpers; a legacy `void GpioSet()` port |
 | [`tests/mock_bno08x.hpp`](../tests/mock_bno08x.hpp) | The mock transport; `GpioSet()` can fail per pin |
 

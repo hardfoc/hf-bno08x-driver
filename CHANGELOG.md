@@ -23,6 +23,9 @@ The build settings carry version 1.0.0; no release has been tagged yet.
   `RESET_STARTUP_MS` = 94 ms: t1 (internal initialization, at least 90 ms) plus t2 (internal configuration,
   about 4 ms), datasheet section 6.5.3, figure 6-8. `EnterBootloader()` and `ExitBootloaderAndReboot()` use it
   too, so each takes 44 ms longer.
+- A program with more than one source file calling `DfuFromMemory()` / `RunDfuFromMemory()` failed to link with
+  Apple clang (duplicate thread-local wrapper symbols for `MemoryFirmware`'s state). The adapter keeps its
+  per-thread state in function-local statics now.
 
 ### Changed
 
