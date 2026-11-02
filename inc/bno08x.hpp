@@ -201,18 +201,18 @@ struct WheelEncoderEvent {
 struct SensorEvent {
   BNO085Sensor sensor{BNO085Sensor::Accelerometer}; ///< Which sensor produced this event
   uint64_t timestamp{0};                            ///< Event timestamp in microseconds
-  Vector3 vector{};          ///< 3-axis data (accel/gyro/mag/gravity/etc.)
-  Vector3 bias{};            ///< Bias for uncalibrated gyro/mag reports.
-  Vector3 angularVelocity{}; ///< Angular velocity for GyroIntegratedRV.
-  Quaternion rotation{};     ///< Quaternion data (rotation vector reports)
-  float scalar{0};           ///< Scalar payload (pressure/light/humidity/temp/etc.)
-  RawVector3 raw{};          ///< Raw integer payload for raw IMU reports.
-  uint32_t latencyUs{0};     ///< Latency for step detector/counter reports.
-  uint32_t stepCount{0};     ///< Cumulative step count (StepCounter)
-  uint16_t eventFlags{0};    ///< Bitfield payload for gesture detector reports.
-  uint8_t classification{0}; ///< Classifier result (stability/activity, etc.).
-  uint8_t sleepState{0};     ///< Sleep detector state.
-  TapEvent tap{};            ///< Tap event details (TapDetector)
+  Vector3 vector{};                                 ///< 3-axis data (accel/gyro/mag/gravity/etc.)
+  Vector3 bias{};                                   ///< Bias for uncalibrated gyro/mag reports.
+  Vector3 angularVelocity{};                        ///< Angular velocity for GyroIntegratedRV.
+  Quaternion rotation{};                            ///< Quaternion data (rotation vector reports)
+  float scalar{0};                    ///< Scalar payload (pressure/light/humidity/temp/etc.)
+  RawVector3 raw{};                   ///< Raw integer payload for raw IMU reports.
+  uint32_t latencyUs{0};              ///< Latency for step detector/counter reports.
+  uint32_t stepCount{0};              ///< Cumulative step count (StepCounter)
+  uint16_t eventFlags{0};             ///< Bitfield payload for gesture detector reports.
+  uint8_t classification{0};          ///< Classifier result (stability/activity, etc.).
+  uint8_t sleepState{0};              ///< Sleep detector state.
+  TapEvent tap{};                     ///< Tap event details (TapDetector)
   ActivityClassifierEvent activity{}; ///< Personal activity classifier payload.
   uint8_t motionIntent{0};            ///< Interactive ZRO motion intent.
   uint8_t motionRequest{0};           ///< Interactive ZRO motion request.
@@ -282,12 +282,7 @@ using RvcCallback = std::function<void(const RvcSensorValue&)>;
  * - `RvcActive`      : RVC UART parser is active.
  * - `DfuInProgress`  : DFU transfer is running.
  */
-enum class BNO085DriverState : uint8_t {
-  Closed = 0,
-  Sh2Active,
-  RvcActive,
-  DfuInProgress
-};
+enum class BNO085DriverState : uint8_t { Closed = 0, Sh2Active, RvcActive, DfuInProgress };
 
 /**
  * @struct DfuProgress
@@ -306,12 +301,12 @@ using DfuProgressCallback = std::function<void(const DfuProgress&)>;
  * @brief Controls DFU validation and transfer behavior.
  */
 struct DfuOptions {
-  bool requireFormatMatch{true};      ///< Validate FW-Format metadata.
-  bool requirePartNumber{true};       ///< Validate SW-Part-Number metadata.
-  const char* requiredFormat{"BNO_V1"}; ///< Required format when format check is enabled.
+  bool requireFormatMatch{true};           ///< Validate FW-Format metadata.
+  bool requirePartNumber{true};            ///< Validate SW-Part-Number metadata.
+  const char* requiredFormat{"BNO_V1"};    ///< Required format when format check is enabled.
   const char* requiredPartNumber{nullptr}; ///< Optional exact part number match.
-  uint8_t packetLenOverride{0};          ///< Optional DFU packet size override (1..64).
-  DfuProgressCallback progress{};        ///< Optional per-transfer progress callback.
+  uint8_t packetLenOverride{0};            ///< Optional DFU packet size override (1..64).
+  DfuProgressCallback progress{};          ///< Optional per-transfer progress callback.
 };
 
 /**
@@ -319,11 +314,11 @@ struct DfuOptions {
  * @brief Firmware image descriptor for class-aware memory DFU.
  */
 struct DfuMemoryImage {
-  const uint8_t* data{nullptr};      ///< Pointer to firmware bytes.
-  uint32_t length{0};                ///< Firmware length in bytes.
-  const char* format{"BNO_V1"};      ///< FW-Format metadata value.
+  const uint8_t* data{nullptr};        ///< Pointer to firmware bytes.
+  uint32_t length{0};                  ///< Firmware length in bytes.
+  const char* format{"BNO_V1"};        ///< FW-Format metadata value.
   const char* partNumber{"1000-3608"}; ///< SW-Part-Number metadata value.
-  uint32_t preferredPacketLen{0};    ///< Optional preferred DFU packet size.
+  uint32_t preferredPacketLen{0};      ///< Optional preferred DFU packet size.
 };
 
 /// @} // end of SensorTypes group
@@ -785,7 +780,7 @@ private:
   int last_error_{0};         ///< Most recent SH-2 error code.
   BNO085DriverState state_{BNO085DriverState::Closed}; ///< Current operating state.
 
-  static constexpr std::size_t SENSOR_CACHE_SIZE_ = 0x2F; ///< Supports IDs 0x00..0x2E.
+  static constexpr std::size_t SENSOR_CACHE_SIZE_ = 0x2F;      ///< Supports IDs 0x00..0x2E.
   std::array<sh2_SensorValue_t, SENSOR_CACHE_SIZE_> latest_{}; ///< Cached latest sensor values.
   std::array<bool, SENSOR_CACHE_SIZE_> new_flag_{};            ///< Per-sensor new-data flags.
   std::array<uint32_t, SENSOR_CACHE_SIZE_>
