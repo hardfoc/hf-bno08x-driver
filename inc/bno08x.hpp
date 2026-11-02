@@ -695,7 +695,8 @@ private:
   /// @brief Adapts the CRTP CommInterface to the vendor C `sh2_Hal_t` struct.
   /// @{
 
-  /** @brief Wrapper pairing the C HAL struct with the typed CommInterface pointer. */
+  /// @cond BNO08X_INTERNAL
+  // Wrapper pairing the C HAL struct with the typed CommInterface pointer.
   struct CommHal {
     sh2_Hal_t* asHal() {
       return &hal;
@@ -703,6 +704,7 @@ private:
     sh2_Hal_t hal;           ///< C HAL function-pointer struct
     CommType* comm{nullptr}; ///< Typed pointer to the user's CommInterface
   } halWrapper_{};
+  /// @endcond
 
   static int halOpen(sh2_Hal_t* self);                                          ///< @private
   static void halClose(sh2_Hal_t* self);                                        ///< @private
