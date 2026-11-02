@@ -146,7 +146,7 @@ apps:
   # RVC Mode Example
   # --------------------------------------------------------------------------
   rvc_mode:
-    description: "RVC (Reduced Vector Computation) mode example"
+    description: "UART-RVC mode: heading, pitch, roll and acceleration streamed at 100 Hz"
     source_file: "rvc_mode_example.cpp"
     category: "example"
     idf_versions: ["release/v5.5"]

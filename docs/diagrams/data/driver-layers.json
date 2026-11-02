@@ -1,0 +1,43 @@
+{
+  "calls": [
+    "Begin",
+    "Close",
+    "EnableSensor",
+    "DisableSensor",
+    "SetCallback",
+    "HasNewData",
+    "GetLatest",
+    "Update",
+    "SetRvcCallback",
+    "BeginRvc",
+    "ServiceRvc",
+    "CloseRvc",
+    "GetLastError",
+    "GetState",
+    "HardwareReset",
+    "SetBootPin",
+    "SetWakePin",
+    "SelectInterface",
+    "Dfu",
+    "DfuWithOptions",
+    "DfuFromMemory",
+    "EnterBootloader",
+    "ExitBootloaderAndReboot",
+    "RunDfuFromMemory"
+  ],
+  "port_hooks": [
+    "GetInterfaceType",
+    "Open",
+    "Close",
+    "Write",
+    "Read",
+    "DataAvailable",
+    "Delay",
+    "GetTimeUs",
+    "GpioSet"
+  ],
+  "sources": [
+    "inc/bno08x.hpp:BNO085 public members",
+    "inc/bno08x_comm_interface.hpp:CommInterface"
+  ]
+}

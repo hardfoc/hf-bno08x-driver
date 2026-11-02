@@ -1,115 +1,77 @@
----
-layout: default
-title: "🛠️ Installation"
-description: "Installation and integration instructions for the BNO08x driver"
-nav_order: 1
-parent: "📚 Documentation"
-permalink: /docs/installation/
----
-
 # Installation
 
-This guide covers how to obtain and integrate the BNO08x driver library into your project.
+Add the driver to a CMake or ESP-IDF project. It is a header-only C++20 driver over CEVA's SH-2 library, which is
+compiled C.
 
-## Prerequisites
+## Requirements
 
-Before installing the driver, ensure you have:
+- A C++20 compiler (GCC 10+, Clang 12+ or a current MSVC) and a C99 compiler for the SH-2 library.
+- The CEVA SH-2 library in the [`src/sh2`](https://github.com/ceva-dsp/sh2) submodule (Apache-2.0).
+- No RTOS and no exceptions. The driver uses `std::function` for callbacks, which may allocate when you store a
+  capturing lambda that does not fit its small buffer.
 
-- **C++11 Compiler**: GCC 4.8+, Clang 3.3+, or MSVC 2015+
-- **Build System**: Make, CMake, or ESP-IDF (depending on your platform)
-- **Platform SDK**: ESP-IDF, STM32 HAL, Arduino, or your platform's I²C/SPI/UART driver
+## Get the source
 
-## Obtaining the Source
-
-### Option 1: Git Clone (with submodules)
+A git submodule keeps the driver pinned to a version you chose. Initialise `src/sh2` too: the build needs it.
 
 ```bash
-git clone --recurse-submodules https://github.com/n3b3x/hf-bno08x-driver.git
-cd hf-bno08x-driver
+git submodule add https://github.com/hardfoc/hf-bno08x-driver.git external/hf-bno08x-driver
+git submodule update --init external/hf-bno08x-driver/src/sh2
 ```
 
-**Important**: The `--recurse-submodules` flag is required because the driver includes the CEVA SH-2 library as a git submodule.
+Only `inc/`, `src/`, `cmake/` and `CMakeLists.txt` are needed to build. The examples have their own submodule
+(`examples/esp32/scripts`); you do not need it to use the driver.
 
-### Option 2: Copy Files
-
-Copy the following layout into your project:
-
-```
-inc/
-  ├── bno08x.hpp
-  └── bno08x_comm_interface.hpp
-src/
-  ├── bno08x.cpp              (driver implementation; includes RVC and DFU logic)
-  ├── sh2/                    (CEVA SH-2 library submodule — required)
-  └── dfu/                    (firmware stubs and MemoryFirmware.hpp for DFU)
-```
-
-RVC and DFU are built into the driver; no separate RVC or DFU modules are required.
-
-## Integration Methods
-
-### Using CMake
-
-Add the driver as a subdirectory in your `CMakeLists.txt`:
+## CMake
 
 ```cmake
 add_subdirectory(external/hf-bno08x-driver)
-target_link_libraries(your_target PRIVATE hf_bno08x)
-target_include_directories(your_target PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/hf-bno08x-driver/inc
-)
+target_link_libraries(my_app PRIVATE hf_bno08x)   # or the alias hf::bno08x
 ```
 
-### Using ESP-IDF Component
+The `hf_bno08x` target is a static library of the SH-2 sources and the DFU firmware stub. It carries the include
+directories (`inc/`, `src/`, `src/dfu/`, `src/sh2/` and the generated version header) and requires C++20
+(`cxx_std_20`), so your target does not need to set either.
 
-The driver can be used as an ESP-IDF component. Add it to your `components` directory:
+| Option | Default | Effect |
+| --- | --- | --- |
+| `HF_BNO08X_ENABLE_WARNINGS` | `OFF` | `-Wall -Wextra -Wpedantic` on the library sources |
+| `HF_BNO08X_BUILD_TESTS` | `OFF` | Builds the host unit tests in `tests/` ([Testing and CI](testing.md)) |
 
-```cmake
-# In your main CMakeLists.txt
-idf_component_register(
-    SRCS "your_code.cpp"
-    INCLUDE_DIRS "."
-    REQUIRES hf_bno08x
-)
+Use the driver from source with `add_subdirectory()`. The install rules copy only `inc/`, while `bno08x.hpp`
+includes `src/bno08x.ipp` and the SH-2 headers, so an installed package does not compile yet.
+
+## ESP-IDF
+
+The ESP-IDF component wrapper is
+[`examples/esp32/components/hf_bno08x/`](../examples/esp32/components/hf_bno08x/CMakeLists.txt). Copy that folder
+into your project's `components/` (or point `EXTRA_COMPONENT_DIRS` at it) and set the `HF_BNO08X_ROOT` cache
+variable to the driver checkout; the wrapper stops with a clear message when the path is wrong. Your component
+then declares `REQUIRES hf_bno08x`. The wrapper compiles the same sources and requires the `driver` and
+`freertos` components.
+
+## How the build is organised
+
+| Layer | File | Role |
+| --- | --- | --- |
+| Settings | [`cmake/hf_bno08x_build_settings.cmake`](../cmake/hf_bno08x_build_settings.cmake) | Sources, include directories, version: the single source of truth |
+| Library | [`CMakeLists.txt`](../CMakeLists.txt) | Static library for host builds, install rules and CI |
+| ESP-IDF | [`examples/esp32/components/hf_bno08x/CMakeLists.txt`](../examples/esp32/components/hf_bno08x/CMakeLists.txt) | IDF component wrapper over the same settings |
+
+The version is set once in the settings file and written into `bno08x_version.h` at configure time. Read it at
+run time:
+
+```cpp
+const char* v = GetBNO08xDriverVersion();   // "1.0.0"; also BNO085<MyI2c>::GetDriverVersion()
 ```
 
-### Manual Integration
+## Firmware image for updates
 
-1. Copy the driver files to your project
-2. Add the `inc/` directory to your include path
-3. Include the header:
-   ```cpp
-   #include "bno08x.hpp"
-   ```
-4. Compile with C++11 support:
-   ```bash
-   g++ -std=c++11 -I inc/ your_code.cpp src/bno08x.cpp
-   ```
+`src/dfu/firmware-bno.c` defines the image `Dfu()` uses by default. It is a 64-byte stub that the driver refuses
+(an image must be at least 1024 bytes). For firmware updates, pass a vendor image at run time with
+`DfuFromMemory()`, or replace this file with the vendor's. See [Firmware update](dfu.md).
 
-## Verification
+## Next
 
-To verify the installation:
-
-1. Include the header in a test file:
-   ```cpp
-   #include "bno08x.hpp"
-   ```
-
-2. Compile a simple test:
-   ```bash
-   g++ -std=c++11 -I inc/ -c src/bno08x.cpp -o test.o
-   ```
-
-3. If compilation succeeds, the library is properly installed.
-
-## Next Steps
-
-- Follow the [Quick Start](quickstart.md) guide to create your first application
-- Review [Hardware Setup](hardware_setup.md) for wiring instructions
-- Check [Platform Integration](platform_integration.md) to implement the communication interface
-
----
-
-**Navigation**
-⬅️ [Back to Index](index.md) | [Next: Quick Start ➡️](quickstart.md)
-
+[Quickstart](quickstart.md) wires the sensor and reads orientation; [Porting](porting.md) writes the communication
+interface for your MCU.

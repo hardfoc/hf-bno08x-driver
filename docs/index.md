@@ -1,67 +1,111 @@
 ---
-layout: default
-title: "📚 Documentation"
-description: "Complete documentation for the HardFOC BNO08x Driver"
-nav_order: 2
-parent: "HardFOC BNO08x Driver"
-permalink: /docs/
-has_children: true
+hide:
+  - navigation
+  - toc
 ---
 
-# HF-BNO08x Documentation
+<div class="hf-hero" markdown>
+<span class="hf-kicker">HardFOC driver</span>
 
-Welcome! This directory contains step-by-step guides for installing, building, and using the **HF-BNO08x** library.
+# BNO08x Driver
 
-The driver supports **I²C**, **SPI**, **UART (SH-2)**, and **UART RVC** via a single `CommInterface`. Your transport reports its type with `GetInterfaceType()` so the driver enables the right mode (`Begin()` for SH-2, `BeginRvc()` for RVC, `Dfu()` for firmware update where supported). See [Platform Integration](platform_integration.md).
+<p>A C++20 driver for the CEVA BNO080, BNO085 and BNO086 9-axis IMU with on-chip sensor fusion. It starts the
+SH-2 sensor hub, enables the reports you ask for and hands you quaternions, vectors and events, on any MCU with
+I2C, SPI or UART.</p>
 
-## 📚 Documentation Structure
+[Quickstart](quickstart.md){ .md-button .md-button--primary }
+[API guide](api-guide.md){ .md-button }
+[Source on GitHub](https://github.com/hardfoc/hf-bno08x-driver){ .md-button }
+</div>
 
-### **Getting Started**
+The driver has no platform code. You give it a small class that moves bytes over your bus, reports when the hub
+has data and drives a reset pin; it does the rest: the SH-2 session through CEVA's own SH-2 library, report
+decoding, re-enabling reports after a hub reset, the UART-RVC frame parser and firmware updates.
 
-1. **[🛠️ Installation](installation.md)** – Prerequisites and how to obtain the source
-2. **[⚡ Quick Start](quickstart.md)** – Minimal working example to get you running
-3. **[🔌 Hardware Setup](hardware_setup.md)** – Wiring diagrams and pin connections
+<div class="hf-chip" markdown>
+<div class="hf-chip__head">
+<span class="hf-chip__kicker">9-axis IMU with sensor-fusion hub</span>
+<span class="hf-chip__name">BNO08x</span>
+<span class="hf-chip__vendor">CEVA (formerly Hillcrest Labs)</span>
+</div>
 
-### **Integration**
+Sensors
+:   Accelerometer (±8 g), gyroscope (±2000 °/s) and magnetometer, fused on chip by the SH-2 firmware
 
-4. **[🔧 Platform Integration](platform_integration.md)** – Implement the CRTP communication interface for your platform
-5. **[⚙️ Configuration](configuration.md)** – Configuration options and settings
+Outputs
+:   Rotation vectors up to 400 Hz (gyro-integrated up to 1 kHz), calibrated and raw IMU data, steps, taps, activity
 
-### **Reference**
+Host interface
+:   I2C up to 400 kHz (address 0x4A / 0x4B), SPI mode 3 up to 3 MHz, UART 3 Mbit/s, or UART-RVC 115200
 
-6. **[📖 API Reference](api_reference.md)** – Complete API documentation
-7. **[💡 Examples](examples.md)** – Detailed example walkthroughs
+Supply
+:   VDD 2.4 V to 3.6 V (sensors), VDDIO 1.7 V to 3.6 V (core and I/O)
 
-### **Advanced Features**
+Package
+:   28-pin LGA, 3.8 mm × 5.2 mm × 1.1 mm, −40 °C to 85 °C
 
-8. **[🧹 RVC Mode](special_feature_rvc.md)** – Robot Vacuum Cleaner mode for simplified UART streaming
-9. **[📦 DFU (Firmware Update)](special_feature_dfu.md)** – Device Firmware Update guide
+Driver modes
+:   SH-2 over I2C, SPI or UART; UART-RVC streaming; firmware update through the bootloader
 
-### **Troubleshooting**
+[Datasheet](datasheet/BNO080_085-Datasheet.pdf) ·
+[SH-2 reference manual](https://www.ceva-ip.com/wp-content/uploads/2019/10/SH-2-Reference-Manual.pdf) ·
+[SHTP specification](https://www.ceva-ip.com/wp-content/uploads/2019/10/Sensor-Hub-Transport-Protocol.pdf)
+</div>
 
-10. **[🐛 Troubleshooting](troubleshooting.md)** – Common issues and solutions
+## What you get
 
----
+- **One object per sensor.** `BNO085<YourPort>` covers SH-2 reports, UART-RVC and firmware updates; the port's
+  interface type decides which calls are allowed. See [API guide](api-guide.md).
+- **Every SH-2 report.** 40 report types, from rotation vectors and calibrated IMU data to step counter, tap,
+  stability and activity classifiers, decoded into one `SensorEvent`. See [Configuration](configuration.md).
+- **Callbacks or polling.** Register a callback, or ask `HasNewData()` and read `GetLatest()`; both work at once.
+  No threads inside: you call `Update()`.
+- **Survives hub resets.** When the hub reports a reset, the driver re-enables every report you had configured.
+- **UART-RVC and firmware update.** Heading, pitch, roll and acceleration at 100 Hz with no protocol stack
+  ([UART-RVC mode](rvc.md)), and in-field firmware updates through the bootloader ([Firmware update](dfu.md)).
+- **Zero-overhead portability.** The port is a CRTP class: no virtual calls, no RTOS dependency.
+  See [Porting](porting.md).
+- **Tested without hardware.** Host unit tests run the driver against a mock transport, including the
+  datasheet's own RVC frame. See [Testing and CI](testing.md).
 
-## 🚀 Quick Start Path
+## Where to go next
 
-**New to BNO08x?** Follow this recommended path:
+<div class="grid cards" markdown>
 
-1. Start with **[Installation](installation.md)** to prepare your environment
-2. Follow **[Hardware Setup](hardware_setup.md)** to wire your hardware
-3. Read **[Quick Start](quickstart.md)** for a minimal working example
-4. Check **[Platform Integration](platform_integration.md)** to implement the communication interface
-5. Explore **[Examples](examples.md)** for more advanced usage
+-   :material-rocket-launch-outline: **[Quickstart](quickstart.md)**
 
----
+    ---
 
-## 💡 Need Help?
+    Wire the sensor, write the port, print orientation in about 20 lines.
 
-- **🐛 Found a bug?** Check the [Troubleshooting](troubleshooting.md) guide
-- **❓ Have questions?** Review the [API Reference](api_reference.md)
-- **📝 Want to contribute?** See the contributing guidelines in the main README
+-   :material-chip: **[Hardware](hardware.md)**
 
----
+    ---
 
-**Navigation**
-➡️ [Installation](installation.md)
+    Pins, protocol selection, bus settings, start-up timing and power.
+
+-   :material-layers-outline: **[Architecture](architecture.md)**
+
+    ---
+
+    The layers, the SH-2 library underneath and what each one owns.
+
+-   :material-code-braces: **[API guide](api-guide.md)**
+
+    ---
+
+    Start, enable reports, read, handle errors, task by task.
+
+-   :material-swap-horizontal: **[Porting](porting.md)**
+
+    ---
+
+    Implement the communication interface for your MCU.
+
+-   :material-book-open-variant: **[API reference](api-reference.md)**
+
+    ---
+
+    Every class and member, generated from the headers.
+
+</div>
