@@ -94,6 +94,7 @@ A call for the wrong interface fails with `SH2_ERR_BAD_PARAM`; a call in the wro
 | `inc/bno08x.hpp` | `BNO085<Comm>`, `BNO085Sensor`, `SensorEvent`, RVC and DFU types |
 | `src/bno08x.ipp` | Template implementation, included by the header (installed next to it) |
 | `inc/bno08x_comm_interface.hpp` | `CommInterface`, `BNO085Interface`, `CtrlPin`, `GpioSignal` |
+| `inc/bno08x_shtp_uart.hpp` | UART-SHTP framing for UART ports: `EncodeFrame()`, `FrameDecoder` |
 | `src/sh2/` | CEVA SH-2 and SHTP library (submodule, Apache-2.0) |
 | `src/dfu/` | `HcBin_t` firmware-image interface, `MemoryFirmware`, the stub image |
 | `tests/` | Host unit tests and the compiled documentation snippets |

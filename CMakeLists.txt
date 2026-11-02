@@ -76,6 +76,7 @@ install(TARGETS ${HF_BNO08X_TARGET_NAME} EXPORT hf_bno08xTargets
 install(FILES
     inc/bno08x.hpp
     inc/bno08x_comm_interface.hpp
+    inc/bno08x_shtp_uart.hpp
     src/bno08x.ipp
     "${HF_BNO08X_VERSION_HEADER}"
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

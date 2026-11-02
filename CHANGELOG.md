@@ -10,6 +10,8 @@ The build settings carry version 1.0.0; no release has been tagged yet.
 
 ### Added
 
+- `inc/bno08x_shtp_uart.hpp`: portable UART-SHTP framing (flags, protocol IDs, byte stuffing, buffer status) for
+  any UART port, with host tests.
 - Host unit tests (`-DHF_BNO08X_BUILD_TESTS=ON`) against a mock transport: UART-RVC parsing with the
   datasheet's example frame, interface and state guards, reset and bootloader pin sequences, DFU image checks.
   A CI workflow runs them with GCC and Clang.
