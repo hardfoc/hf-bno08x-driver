@@ -1,9 +1,0 @@
-<map id="src/sh2/shtp.h" name="src/sh2/shtp.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="197,5,309,31"/>
-<area shape="rect" id="Node000002" href="$dfu__fsp200_8cpp.html" title=" " alt="" coords="5,79,175,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,39,118,81,116,76,213,34"/>
-<area shape="rect" id="Node000003" href="$sh2_8c.html" title="API Definition for SH&#45;2 Sensor Hub." alt="" coords="199,79,306,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="255,44,255,79,250,79,250,44"/>
-<area shape="rect" id="Node000004" href="$shtp_8c.html" title=" " alt="" coords="331,79,441,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="287,35,365,76,363,81,285,39"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="IRvcHal" name="IRvcHal">
-<area shape="rect" id="Node000001" title="Abstract interface for platform specific RVC hardware access." alt="" coords="91,5,163,31"/>
-<area shape="rect" id="Node000002" href="$structCAdapterHal.html" title="Adapter used when a C style HAL is supplied." alt="" coords="5,79,109,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,43,70,80,67,77,104,39"/>
-<area shape="rect" id="Node000003" href="$classEsp32C6RvcHal.html" title="Example HAL implementation for ESP32&#45;C6 using ESP&#45;IDF UART driver." alt="" coords="134,79,258,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,39,187,77,183,80,146,43"/>
-</map>

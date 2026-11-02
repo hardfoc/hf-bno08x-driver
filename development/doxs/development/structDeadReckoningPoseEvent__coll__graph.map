@@ -1,7 +1,0 @@
-<map id="DeadReckoningPoseEvent" name="DeadReckoningPoseEvent">
-<area shape="rect" id="Node000001" title="Dead reckoning position/orientation/velocity payload." alt="" coords="13,132,204,160"/>
-<area shape="rect" id="Node000002" href="$structVector3.html" title="Three&#45;axis vector with sensor accuracy indicator." alt="" coords="5,5,76,33"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="35,46,36,78,44,107,56,120,72,131,67,132,52,124,40,109,31,79,34,51"/>
-<area shape="rect" id="Node000003" href="$structQuaternion.html" title="Unit quaternion with sensor accuracy indicator." alt="" coords="130,5,223,33"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,46,164,79,149,109,127,134,124,129,145,107,159,77,169,50"/>
-</map>

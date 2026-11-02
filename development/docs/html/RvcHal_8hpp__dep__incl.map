@@ -1,7 +1,0 @@
-<map id="src/rvc/RvcHal.hpp" name="src/rvc/RvcHal.hpp">
-<area shape="rect" id="Node000001" title="CRTP&#45;based hardware abstraction interface for RVC mode." alt="" coords="25,5,167,31"/>
-<area shape="rect" id="Node000002" href="$esp32__rvc__hal_8hpp.html" title="ESP32 RVC HAL implementation for BNO08x UART&#45;based RVC mode." alt="" coords="13,79,179,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,44,99,79,93,79,93,44"/>
-<area shape="rect" id="Node000003" href="$rvc__mode__example_8cpp.html" title="RVC (Reduced Vector Computation) mode example." alt="" coords="5,167,187,207"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,133,99,166,93,166,93,133"/>
-</map>

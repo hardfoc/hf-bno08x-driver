@@ -1,5 +1,0 @@
-@PACKAGE_INIT@
-
-include("${CMAKE_CURRENT_LIST_DIR}/hf_bno08xTargets.cmake")
-
-check_required_components(hf_bno08x)

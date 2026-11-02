@@ -1,5 +1,0 @@
-<map id="HalTransport" name="HalTransport">
-<area shape="rect" id="Node000001" title="Adapter converting an existing sh2_Hal_t implementation to the DfuTransportInterface using CRTP." alt="" coords="35,93,139,119"/>
-<area shape="rect" id="Node000002" href="$classDfuTransportInterface.html" title=" " alt="" coords="5,5,168,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,59,89,93,84,93,84,59"/>
-</map>

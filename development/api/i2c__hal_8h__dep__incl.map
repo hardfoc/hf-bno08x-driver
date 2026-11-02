@@ -1,9 +1,0 @@
-<map id="src/app/i2c_hal.h" name="src/app/i2c_hal.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="183,5,313,31"/>
-<area shape="rect" id="Node000002" href="$bno08x__i2c__hal_8c.html" title=" " alt="" coords="5,79,152,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,39,121,81,119,76,210,34"/>
-<area shape="rect" id="Node000003" href="$fsp201__i2c__hal_8c.html" title=" " alt="" coords="177,79,319,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="251,44,251,79,245,79,245,44"/>
-<area shape="rect" id="Node000004" href="$i2c__hal_8c.html" title=" " alt="" coords="344,86,475,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="285,34,387,84,385,88,282,39"/>
-</map>

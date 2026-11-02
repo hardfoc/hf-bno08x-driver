@@ -1,5 +1,0 @@
-<map id="Esp32C6RvcHal" name="Esp32C6RvcHal">
-<area shape="rect" id="Node000001" title="Example HAL implementation for ESP32&#45;C6 using ESP&#45;IDF UART driver." alt="" coords="5,79,129,104"/>
-<area shape="rect" id="Node000002" href="$classIRvcHal.html" title="Abstract interface for platform specific RVC hardware access." alt="" coords="31,5,103,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,44,70,79,65,79,65,44"/>
-</map>

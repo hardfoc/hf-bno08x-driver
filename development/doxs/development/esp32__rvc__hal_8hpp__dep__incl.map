@@ -1,5 +1,0 @@
-<map id="examples/esp32/main/esp32_rvc_hal.hpp" name="examples/esp32/main/esp32_rvc_hal.hpp">
-<area shape="rect" id="Node000001" title="ESP32 RVC HAL implementation for BNO08x UART&#45;based RVC mode." alt="" coords="13,5,179,45"/>
-<area shape="rect" id="Node000002" href="$rvc__mode__example_8cpp.html" title="RVC (Reduced Vector Computation) mode example." alt="" coords="5,93,187,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,59,99,93,93,93,93,59"/>
-</map>

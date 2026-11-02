@@ -1,9 +1,0 @@
-<map id="src/rvc/RvcHal.hpp" name="src/rvc/RvcHal.hpp">
-<area shape="rect" id="Node000001" title="CRTP&#45;based hardware abstraction interface for RVC mode." alt="" coords="12,5,155,31"/>
-<area shape="rect" id="Node000002" href="$rvc_8h.html" title=" " alt="" coords="13,79,68,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,32,57,68,52,66,74,30"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="93,79,159,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="93,30,114,66,110,68,88,32"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,76,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="43,104,43,138,38,138,38,104"/>
-</map>

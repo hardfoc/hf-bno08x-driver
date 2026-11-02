@@ -1,7 +1,0 @@
-<map id="src/dfu/IDfuTransport.hpp" name="src/dfu/IDfuTransport.hpp">
-<area shape="rect" id="Node000001" title="CRTP&#45;based hardware abstraction interface for DFU transport." alt="" coords="5,5,191,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="9,79,75,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,33,62,69,57,66,87,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="100,79,211,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="110,29,139,66,135,70,105,33"/>
-</map>

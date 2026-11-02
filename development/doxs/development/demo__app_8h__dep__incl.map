@@ -1,9 +1,0 @@
-<map id="src/app/demo_app.h" name="src/app/demo_app.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="164,5,317,31"/>
-<area shape="rect" id="Node000002" href="$cal__app_8c.html" title=" " alt="" coords="5,79,140,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,38,101,81,99,76,200,34"/>
-<area shape="rect" id="Node000003" href="$demo__app_8c.html" title=" " alt="" coords="165,79,317,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="243,44,243,79,238,79,238,44"/>
-<area shape="rect" id="Node000004" href="$demo__rvc_8c.html" title=" " alt="" coords="341,79,489,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="282,33,388,76,386,81,280,38"/>
-</map>

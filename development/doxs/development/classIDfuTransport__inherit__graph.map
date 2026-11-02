@@ -1,5 +1,0 @@
-<map id="IDfuTransport" name="IDfuTransport">
-<area shape="rect" id="Node000001" title="Abstract interface for DFU hardware access." alt="" coords="5,5,115,31"/>
-<area shape="rect" id="Node000002" href="$classHalTransport.html" title="Adapter converting an existing sh2_Hal_t implementation to the IDfuTransport interface." alt="" coords="8,79,112,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="63,44,63,79,57,79,57,44"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="shtp_s" name="shtp_s">
-<area shape="rect" id="Node000001" title=" " alt="" coords="83,93,147,119"/>
-<area shape="rect" id="Node000002" href="$structsh2__Hal__s.html" title=" " alt="" coords="5,5,93,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,40,108,91,103,94,64,43"/>
-<area shape="rect" id="Node000003" href="$structshtp__Channel__s.html" title=" " alt="" coords="118,5,242,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,43,126,94,122,91,161,40"/>
-</map>
