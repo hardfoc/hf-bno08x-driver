@@ -19,13 +19,13 @@
  * - **SH-2 mode** (Begin, Update, EnableSensor, Dfu): requires `I2C`, `SPI`, or `UART`.
  * - **RVC mode** (BeginRvc, ServiceRvc, CloseRvc): requires `UARTRVC`.
  *
- * The enum values also correspond to the BNO08x PS1/PS0 pin states that
- * select the interface at boot time.
+ * The enum value is the PS1:PS0 pin pair (PS1 = bit 1, PS0 = bit 0) that
+ * selects the interface at reset, per datasheet 1000-3927 figure 1-5.
  */
 enum class BNO085Interface : uint8_t {
   I2C = 0,     ///< I2C bus (PS1=0, PS0=0). Supports SH-2 and DFU.
-  UARTRVC = 1, ///< UART in RVC mode (PS1=1, PS0=0). RVC frames only.
-  UART = 2,    ///< UART in SH-2 mode (PS1=0, PS0=1). Supports SH-2 and DFU.
+  UARTRVC = 1, ///< UART in RVC mode (PS1=0, PS0=1). RVC frames only.
+  UART = 2,    ///< UART in SH-2 mode (PS1=1, PS0=0). Supports SH-2 and DFU.
   SPI = 3      ///< SPI bus (PS1=1, PS0=1). Supports SH-2 and DFU.
 };
 

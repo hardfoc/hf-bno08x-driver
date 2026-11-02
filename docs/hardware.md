@@ -39,10 +39,8 @@ PS1, PS0 and BOOTN are sampled at reset (datasheet figure 1-5). Strap them, or d
 | 1 | 0 | UART (SHTP) | UART | `UART` |
 | 1 | 1 | SPI | SPI | `SPI` |
 
-!!! warning "`SelectInterface()` swaps UART and UART-RVC"
-    In this release `SelectInterface(BNO085Interface::UART)` drives PS1 low and PS0 high, which selects UART-RVC,
-    and `SelectInterface(BNO085Interface::UARTRVC)` selects UART-SHTP. I2C and SPI are correct. Strap the pins in
-    hardware, or drive PS0 and PS1 from your own code with the table above.
+If your board wires PS0 and PS1 to GPIOs, `SelectInterface(iface)` drives them to the row of the table for
+`iface` (the enum value is the PS1:PS0 pair); call it before `HardwareReset()`.
 
 ## Bus settings
 

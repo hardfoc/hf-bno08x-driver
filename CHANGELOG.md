@@ -14,6 +14,12 @@ The build settings carry version 1.0.0; no release has been tagged yet.
   datasheet's example frame, interface and state guards, reset and bootloader pin sequences, DFU image checks.
   A CI workflow runs them with GCC and Clang.
 
+### Fixed
+
+- `SelectInterface()` drove PS1/PS0 swapped for the two UART modes: `UART` selected UART-RVC and `UARTRVC`
+  selected UART-SHTP. It now follows datasheet figure 1-5 (PS1/PS0 = 01 UART-RVC, 10 UART); I2C and SPI were
+  already right. **BREAKING** for boards that called it with the swapped value to work around the bug.
+
 ### Changed
 
 - Documentation moved to the HardFOC MkDocs platform: new page set (quickstart, hardware, architecture, API

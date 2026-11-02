@@ -6,8 +6,9 @@
  * for RVC (Rotation Vector Computation) mode at 115200 baud. The driver's
  * RVC frame parser reads raw bytes via Read() and handles sync/checksum.
  *
- * @note The BNO08x must have PS0/PS1 set to RVC mode (PS1=HIGH, PS0=LOW)
- *       at reset time. The sensor outputs 19-byte RVC frames continuously.
+ * @note The BNO08x must have PS0/PS1 set to RVC mode (PS1=LOW, PS0=HIGH,
+ *       datasheet figure 1-5) at reset time. The sensor outputs 19-byte RVC
+ *       frames continuously.
  *
  * @author Nebiyu Tadesse
  * @date 2025

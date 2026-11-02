@@ -675,7 +675,9 @@ void BNO085<CommType>::SetWakePin(bool state) noexcept {
  * @brief Drive PS0/PS1 pins to select the host interface.
  *
  * PS pins are sampled at reset. This is only useful if the pins are
- * connected to controllable GPIOs.
+ * connected to controllable GPIOs. Levels follow datasheet 1000-3927
+ * figure 1-5 (Protocol selection): PS1/PS0 = 00 I2C, 01 UART-RVC,
+ * 10 UART (SHTP), 11 SPI.
  */
 template <typename CommType>
 void BNO085<CommType>::SelectInterface(BNO085Interface iface) noexcept {
@@ -687,12 +689,12 @@ void BNO085<CommType>::SelectInterface(BNO085Interface iface) noexcept {
     io_.GpioSetInactive(CtrlPin::PS0);
     break;
   case BNO085Interface::UARTRVC:
-    io_.GpioSetActive(CtrlPin::PS1);
-    io_.GpioSetInactive(CtrlPin::PS0);
-    break;
-  case BNO085Interface::UART:
     io_.GpioSetInactive(CtrlPin::PS1);
     io_.GpioSetActive(CtrlPin::PS0);
+    break;
+  case BNO085Interface::UART:
+    io_.GpioSetActive(CtrlPin::PS1);
+    io_.GpioSetInactive(CtrlPin::PS0);
     break;
   case BNO085Interface::SPI:
     io_.GpioSetActive(CtrlPin::PS1);
