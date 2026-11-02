@@ -19,6 +19,10 @@ The build settings carry version 1.0.0; no release has been tagged yet.
 - `SelectInterface()` drove PS1/PS0 swapped for the two UART modes: `UART` selected UART-RVC and `UARTRVC`
   selected UART-SHTP. It now follows datasheet figure 1-5 (PS1/PS0 = 01 UART-RVC, 10 UART); I2C and SPI were
   already right. **BREAKING** for boards that called it with the swapped value to work around the bug.
+- `HardwareReset()` waited 50 ms after releasing NRST, shorter than the hub's start-up time. It now waits
+  `RESET_STARTUP_MS` = 94 ms: t1 (internal initialization, at least 90 ms) plus t2 (internal configuration,
+  about 4 ms), datasheet section 6.5.3, figure 6-8. `EnterBootloader()` and `ExitBootloaderAndReboot()` use it
+  too, so each takes 44 ms longer.
 
 ### Changed
 

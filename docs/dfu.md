@@ -29,14 +29,14 @@ Replace the BNO08x's SH-2 firmware in the field through its bootloader, with an 
 <div class="hf-steps" markdown>
 
 1. **Enter the bootloader.** `EnterBootloader(10, 50)`: close any open session, open the port, assert BOOTN, hold
-   NRST low 10 ms, wait 50 ms, release BOOTN, wait 50 ms.
+   NRST low 10 ms, wait 94 ms (`RESET_STARTUP_MS`), release BOOTN, wait 50 ms.
 2. **Check the image.** `FW-Format` must be `BNO_V1` and `SW-Part-Number` a known part (or the one you require),
    and the image at least 1024 bytes; otherwise `SH2_ERR_BAD_PARAM` before anything is sent.
 3. **Send the size.** The application length as 4 bytes big-endian plus CRC-16, then the packet length (1 to 64
    bytes) plus CRC-16. The bootloader acknowledges each with `s`.
 4. **Send the image.** Packets of up to 64 bytes, each with a CRC-16 (CCITT, polynomial 0x1021, initial value
    0xFFFF), each acknowledged; up to 5 attempts and 100 ms per packet. `options.progress` runs after each one.
-5. **Reboot.** `ExitBootloaderAndReboot(2, 100)`: BOOTN high, NRST low 2 ms, wait 50 ms plus 100 ms. Then call
+5. **Reboot.** `ExitBootloaderAndReboot(2, 100)`: BOOTN high, NRST low 2 ms, wait 94 ms plus 100 ms. Then call
    `Begin()` as usual.
 
 </div>

@@ -578,8 +578,10 @@ bool BNO085<CommType>::configure(BNO085Sensor sensor, uint32_t interval_us, floa
 /**
  * @brief Assert RSTN for @p lowMs, then release and wait for boot.
  *
- * The 50 ms post-release delay allows the sensor to complete its boot
- * sequence before any I2C/SPI/UART transactions.
+ * After NRST rises the hub needs t1 (internal initialization, min 90 ms)
+ * plus t2 (internal configuration, typ 4 ms) before it asserts H_INTN and
+ * can be addressed (datasheet 1000-3927 section 6.5.3, figures 6-8 and 6-9).
+ * The driver waits RESET_STARTUP_MS = t1 + t2.
  */
 template <typename CommType>
 void BNO085<CommType>::HardwareReset(uint32_t lowMs) noexcept {
@@ -587,7 +589,7 @@ void BNO085<CommType>::HardwareReset(uint32_t lowMs) noexcept {
   io_.GpioSetActive(CtrlPin::RSTN);   // Assert reset
   io_.Delay(lowMs);
   io_.GpioSetInactive(CtrlPin::RSTN); // Release reset
-  io_.Delay(50);                      // Wait for sensor boot
+  io_.Delay(RESET_STARTUP_MS);        // t1 + t2 (datasheet 6.5.3)
 }
 
 /** @brief Forward BOOTN control to the CommInterface. */

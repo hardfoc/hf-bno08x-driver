@@ -46,11 +46,11 @@ TEST_CASE("Begin() fails and leaves the driver closed when the transport does no
   CHECK(imu.GetState() == BNO085DriverState::Closed);
 }
 
-TEST_CASE("HardwareReset() asserts RSTN, waits, releases it and waits 50 ms") {
+TEST_CASE("HardwareReset() waits t1 + t2 = 94 ms after NRST (datasheet 6.5.3, figure 6-8)") {
   MockBus bus(BNO085Interface::I2C);
   BNO085<MockBus> imu(bus);
   imu.HardwareReset(5);
-  const std::vector<std::string> expected = {"RSTN active", "delay 5", "RSTN inactive", "delay 50"};
+  const std::vector<std::string> expected = {"RSTN active", "delay 5", "RSTN inactive", "delay 94"};
   CHECK(bus.log == expected);
 }
 
@@ -59,7 +59,7 @@ TEST_CASE("EnterBootloader() holds BOOTN across a reset, then releases it") {
   BNO085<MockBus> imu(bus);
   REQUIRE(imu.EnterBootloader(10, 50));
   const std::vector<std::string> expected = {"BOOTN active",  "RSTN active", "delay 10",
-                                             "RSTN inactive", "delay 50",    "BOOTN inactive",
+                                             "RSTN inactive", "delay 94",    "BOOTN inactive",
                                              "delay 50"};
   CHECK(bus.log == expected);
   CHECK_EQ(bus.opens, 1);

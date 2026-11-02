@@ -561,11 +561,22 @@ public:
    * @brief Perform a hardware reset via the RSTN pin.
    *
    * Drives RSTN LOW for @p lowMs milliseconds, then releases it HIGH and
-   * waits 50 ms for the sensor to boot.
+   * waits RESET_STARTUP_MS (94 ms) for the sensor to boot: t1 (internal
+   * initialization, min 90 ms) plus t2 (internal configuration, typ 4 ms)
+   * of datasheet 1000-3927 section 6.5.3, figure 6-8.
    *
-   * @param[in] lowMs  Duration to hold RSTN LOW (default 2 ms).
+   * @param[in] lowMs  Duration to hold RSTN LOW (default 2 ms; the datasheet
+   *                   minimum t_nrst is 10 ns).
    */
   void HardwareReset(uint32_t lowMs = 2) noexcept;
+
+  /**
+   * @brief Wait after releasing NRST before the hub can be addressed, in ms.
+   *
+   * t1 (internal initialization, min 90 ms) + t2 (internal configuration,
+   * typ 4 ms), datasheet 1000-3927 section 6.5.3, figures 6-8 and 6-9.
+   */
+  static constexpr uint32_t RESET_STARTUP_MS = 90 + 4;
 
   /**
    * @brief Drive the BOOTN pin to enter/exit DFU bootloader mode.

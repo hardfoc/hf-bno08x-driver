@@ -109,8 +109,8 @@ sequenceDiagram
 | Wake to H_INTN (SPI) | about 150 µs | figure 6-12 |
 
 Handle H_INTN within a tenth of your fastest report period: late responses starve the fusion processing and add
-errors. `HardwareReset()` waits 50 ms after releasing NRST; `Begin()` then waits up to 200 ms for the hub's reset
-message, which covers the 94 ms start-up.
+errors. `HardwareReset()` waits `RESET_STARTUP_MS` (94 ms: t1 at least 90 ms plus t2 about 4 ms) after releasing
+NRST, so the hub has finished its start-up before the first transfer.
 
 ## Power
 
