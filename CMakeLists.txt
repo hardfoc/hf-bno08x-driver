@@ -46,6 +46,13 @@ if(HF_BNO08X_ENABLE_WARNINGS)
     endif()
 endif()
 
+# ── Host unit tests (mock transport; no hardware) ────────────────────────────
+option(HF_BNO08X_BUILD_TESTS "Build the host unit tests in tests/" OFF)
+if(HF_BNO08X_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
