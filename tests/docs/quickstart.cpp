@@ -4,10 +4,10 @@
  */
 #include "my_i2c.hpp"
 
-#include <cstdio>
-
 // --8<-- [start:quickstart]
 #include "bno08x.hpp"
+
+#include <cstdio>
 
 int print_orientation(MyI2c& bus) {
   BNO085<MyI2c> imu(bus);
