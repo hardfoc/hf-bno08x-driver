@@ -1,12 +1,3 @@
----
-layout: default
-title: "🔌 Hardware Setup"
-description: "Hardware wiring and connection guide for BNO08x sensor"
-nav_order: 3
-parent: "📚 Documentation"
-permalink: /docs/hardware_setup/
----
-
 # Hardware Setup
 
 ![BNO08x SH-2 sensor stack and host integration](assets/bno08x-stack.svg)

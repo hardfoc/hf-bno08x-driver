@@ -1,20 +1,10 @@
----
-layout: default
-title: "📚 Documentation"
-description: "Complete documentation for the HardFOC BNO08x Driver"
-nav_order: 2
-parent: "HardFOC BNO08x Driver"
-permalink: /docs/
-has_children: true
----
-
 # HF-BNO08x Documentation
 
 Welcome! This directory contains step-by-step guides for installing, building, and using the **HF-BNO08x** library.
 
 The driver supports **I²C**, **SPI**, **UART (SH-2)**, and **UART RVC** via a single `CommInterface`. Your transport reports its type with `GetInterfaceType()` so the driver enables the right mode (`Begin()` for SH-2, `BeginRvc()` for RVC, `Dfu()` for firmware update where supported). See [Platform Integration](platform_integration.md).
 
-## 📚 Documentation Structure
+## Documentation Structure
 
 ### **Getting Started**
 
@@ -43,7 +33,7 @@ The driver supports **I²C**, **SPI**, **UART (SH-2)**, and **UART RVC** via a s
 
 ---
 
-## 🚀 Quick Start Path
+## Quick Start Path
 
 **New to BNO08x?** Follow this recommended path:
 
@@ -55,7 +45,7 @@ The driver supports **I²C**, **SPI**, **UART (SH-2)**, and **UART RVC** via a s
 
 ---
 
-## 💡 Need Help?
+## Need Help?
 
 - **🐛 Found a bug?** Check the [Troubleshooting](troubleshooting.md) guide
 - **❓ Have questions?** Review the [API Reference](api_reference.md)

@@ -1,12 +1,3 @@
----
-layout: default
-title: "📦 DFU"
-description: "Device Firmware Update guide for BNO08x sensors"
-nav_order: 9
-parent: "📚 Documentation"
-permalink: /docs/special_feature_dfu/
----
-
 # DFU (Device Firmware Update)
 
 The BNO08x driver includes support for updating sensor firmware via the Device Firmware Update (DFU) protocol. This allows you to update the sensor's firmware without removing it from your system.

@@ -1,12 +1,3 @@
----
-layout: default
-title: "🔧 Platform Integration"
-description: "How to implement the communication interface for your platform"
-nav_order: 4
-parent: "📚 Documentation"
-permalink: /docs/platform_integration/
----
-
 # Platform Integration Guide
 
 This guide explains how to implement the CRTP-based communication interface for the BNO08x driver on your platform.

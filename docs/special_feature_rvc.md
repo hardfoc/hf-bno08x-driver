@@ -1,12 +1,3 @@
----
-layout: default
-title: "🧹 RVC Mode"
-description: "Robot Vacuum Cleaner mode for simplified UART streaming"
-nav_order: 8
-parent: "📚 Documentation"
-permalink: /docs/special_feature_rvc/
----
-
 # RVC Mode (Robot Vacuum Cleaner Mode)
 
 RVC mode is a simplified UART streaming protocol that provides basic orientation and motion data without requiring the full SH-2 command interface. This mode is ideal for resource-constrained systems that only need yaw/pitch/roll and linear acceleration.

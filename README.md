@@ -1,11 +1,3 @@
----
-layout: default
-title: "HardFOC BNO08x Driver"
-description: "Hardware-agnostic BNO08x library for Hillcrest / CEVA BNO08x sensors with full-stack, zero-thread driver support"
-nav_order: 1
-permalink: /
----
-
 # HF-BNO08x Driver
 
 **Hardware-agnostic BNO08x library for Hillcrest / CEVA BNO08x sensors with full-stack, zero-thread driver support**
@@ -15,19 +7,19 @@ permalink: /
 [![CI](https://github.com/hardfoc/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/hardfoc/hf-bno08x-driver/actions/workflows/esp32-examples-build-ci.yml)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://hardfoc.github.io/hf-bno08x-driver/)
 
-## 📚 Table of Contents
-1. [Overview](#-overview)
-2. [Features](#-features)
-3. [Quick Start](#-quick-start)
-4. [Installation](#-installation)
-5. [API Reference](#-api-reference)
-6. [Examples](#-examples)
-7. [Documentation](#-documentation)
-8. [References](#-references)
-9. [Contributing](#-contributing)
-10. [License](#-license)
+## Table of Contents
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Quick Start](#quick-start)
+4. [Installation](#installation)
+5. [API Reference](#api-reference)
+6. [Examples](#examples)
+7. [Documentation](#documentation)
+8. [References](#references)
+9. [Contributing](#contributing)
+10. [License](#license)
 
-## 📦 Overview
+## Overview
 
 > **📖 [📚🌐 Live Complete Documentation](https://hardfoc.github.io/hf-bno08x-driver/)** -
 > Interactive guides, examples, and step-by-step tutorials
@@ -38,7 +30,7 @@ The driver uses a CRTP-based communication interface design, allowing it to run 
 
 ![BNO08x SH-2 sensor stack and host integration](docs/assets/bno08x-stack.svg)
 
-### 🔀 Chip Compatibility
+### Chip Compatibility
 
 The BNO080, BNO085, and BNO086 are pin-compatible siblings sharing the same SH-2
 firmware interface. The driver targets all three with a single class — feature
@@ -56,7 +48,7 @@ availability follows the SH-2 firmware revision shipped on each part.
 | AEC-Q100 automotive qualification        | —      | —      | ✅     |
 | Communication interfaces                 | I²C / SPI / UART | I²C / SPI / UART | I²C / SPI / UART |
 
-## ✨ Features
+## Features
 
 - ✅ **Complete SH-2 Coverage**: Access every BNO085 SH-2 report (raw & calibrated IMU, rotation vectors, activity, tap/shake, step counter, etc.)
 - ✅ **Hardware Agnostic**: CRTP-based `CommInterface` works with any I²C, SPI, or UART implementation
@@ -67,7 +59,7 @@ availability follows the SH-2 firmware revision shipped on each part.
 - ✅ **DFU Support**: Firmware update capability via Device Firmware Update protocol
 - ✅ **Pin Control API**: Optional helpers to drive RSTN/BOOTN/WAKE and select I²C, UART, or SPI via PS pins
 
-## 🚀 Quick Start
+## Quick Start
 
 ```cpp
 #include "inc/bno08x.hpp"
@@ -108,7 +100,7 @@ while (true) {
 
 For detailed setup, see [Installation](docs/installation.md) and [Quick Start Guide](docs/quickstart.md).
 
-## 🔧 Installation
+## Installation
 
 1. **Clone or copy** the driver files into your project
 2. **Implement the communication interface** for your platform (see [Platform Integration](docs/platform_integration.md))
@@ -120,7 +112,7 @@ For detailed setup, see [Installation](docs/installation.md) and [Quick Start Gu
 
 For detailed installation instructions, see [docs/installation.md](docs/installation.md).
 
-## 📖 API Reference
+## API Reference
 
 | Method | Description |
 |--------|-------------|
@@ -134,13 +126,13 @@ For detailed installation instructions, see [docs/installation.md](docs/installa
 
 For complete API documentation, see [docs/api_reference.md](docs/api_reference.md).
 
-## 📊 Examples
+## Examples
 
 For ESP32 examples, see the [examples/esp32](examples/esp32/) directory.
 
 Detailed example walkthroughs are available in [docs/examples.md](docs/examples.md).
 
-## 📚 Documentation
+## Documentation
 
 For complete documentation, see the [docs directory](docs/index.md).
 
@@ -149,7 +141,7 @@ For complete documentation, see the [docs directory](docs/index.md).
 - **[RVC Mode](docs/special_feature_rvc.md)** - Simplified UART streaming mode
 - **[DFU (Firmware Update)](docs/special_feature_dfu.md)** - Device firmware update guide
 
-## 🔗 References
+## References
 
 | Resource | Link |
 |----------|------|
@@ -161,11 +153,11 @@ For complete documentation, see the [docs directory](docs/index.md).
 | ESP-IDF I²C / SPI / UART | <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/peripherals/index.html> |
 | C++11 language reference | <https://en.cppreference.com/w/cpp/11> |
 
-## 🤝 Contributing
+## Contributing
 
 Pull requests and suggestions are welcome! Please follow the existing code style and include tests for new features.
 
-## 📄 License
+## License
 
 - **C++ wrapper code**: [GNU GPL v3.0](LICENSE)
 - **CEVA SH-2 backend**: Apache 2.0 (included)

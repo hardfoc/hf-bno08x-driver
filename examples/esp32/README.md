@@ -2,7 +2,7 @@
 
 This directory contains comprehensive examples demonstrating the BNO08x driver on ESP32-S3 platform.
 
-## 🎯 Overview
+## Overview
 
 The ESP32-S3 examples showcase real-world usage of the BNO08x IMU sensor with:
 
@@ -12,7 +12,7 @@ The ESP32-S3 examples showcase real-world usage of the BNO08x IMU sensor with:
 - **Comprehensive documentation** for each example
 - **Production-ready code** with proper error handling
 
-## 🔧 Hardware Requirements
+## Hardware Requirements
 
 ### ESP32-S3 Development Board
 - ESP32-S3-DevKitC-1 or compatible
@@ -31,7 +31,7 @@ The ESP32-S3 examples showcase real-world usage of the BNO08x IMU sensor with:
 
 **Note:** The default I2C address is 0x4B (SA0=HIGH). If ADR/SA0 is tied low, use address 0x4A. The examples automatically probe both addresses.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 
@@ -68,9 +68,9 @@ cd hf-bno08x-driver/examples/esp32
 idf.py monitor
 ```
 
-## 📱 Available Examples
+## Available Examples
 
-### 🟢 Test Suite
+### Test Suite
 
 #### `driver_integration_test`
 **Comprehensive Driver Integration Test Suite**
@@ -104,7 +104,7 @@ idf.py monitor
 ./scripts/build_app.sh dfu_workflow_test Release
 ```
 
-### 🟡 Basic Examples
+### Basic Examples
 
 #### `basic_polling`
 **Basic Polling Mode Example**
@@ -168,7 +168,7 @@ idf.py monitor
 ./scripts/build_app.sh dfu_update Release
 ```
 
-## 🔨 Building Examples
+## Building Examples
 
 ### Using Build Scripts (Recommended)
 
@@ -197,7 +197,7 @@ idf.py flash
 idf.py monitor
 ```
 
-## 📊 Test Framework
+## Test Framework
 
 All test examples use a standardized test framework with:
 
@@ -214,7 +214,7 @@ All test examples use a standardized test framework with:
 - `RUN_TEST_SECTION_IF_ENABLED(enabled, section_name, ...)` - Conditional test sections
 - `g_test_results` - Global test results tracking
 
-## 🔌 Hardware Configuration
+## Hardware Configuration
 
 ### I2C Configuration
 
@@ -240,7 +240,7 @@ config.rst_pin = GPIO_NUM_16;      // Reset pin (active-low)
 | Reset | GPIO16 | Active-low, for hardware reset |
 | Test Progress | GPIO14 | Used by test framework |
 
-## 📚 Documentation
+## Documentation
 
 For more detailed documentation, see:
 
@@ -250,7 +250,7 @@ For more detailed documentation, see:
 - [Examples Guide](../../docs/examples.md)
 - [API Reference](../../docs/api_reference.md)
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Build Issues
 
@@ -282,11 +282,11 @@ For more detailed documentation, see:
 - Ensure proper power supply (3.3V)
 - Check for I2C bus conflicts
 
-## 📝 License
+## License
 
 See the main driver [LICENSE](../../LICENSE) file.
 
-## 🤝 Contributing
+## Contributing
 
 See the main driver [Contributing Guide](../../README.md#contributing-🤝).
 

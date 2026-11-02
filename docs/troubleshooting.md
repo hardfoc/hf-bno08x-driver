@@ -1,12 +1,3 @@
----
-layout: default
-title: "🐛 Troubleshooting"
-description: "Common issues and solutions for the BNO08x driver"
-nav_order: 10
-parent: "📚 Documentation"
-permalink: /docs/troubleshooting/
----
-
 # Troubleshooting
 
 This guide helps you diagnose and resolve common issues when using the BNO08x driver.
