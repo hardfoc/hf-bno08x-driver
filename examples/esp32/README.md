@@ -14,6 +14,9 @@ app shows, is on the documentation site: [Examples](https://hardfoc.github.io/hf
 | VDD, VDDIO | 3.3 V | |
 | GND | GND | |
 | UART-RVC TX | 20 (RX) | `rvc_mode` only; PS1 low, PS0 high on the sensor |
+| UART TX, RX | 20 (RX), 21 (TX) | `uart_shtp_polling` only, 3 Mbit/s; PS1 high, PS0 low; needs the BNO08x crystal |
+| SPI SCLK, MOSI, MISO, CS | 12, 11, 13, 10 | `spi_polling` only, mode 3 at 3 MHz; PS1 high |
+| PS0/WAKE | 18 | `spi_polling` only: high through reset (selects SPI), then the active-low wake |
 
 The I2C examples try address 0x4B (SA0 high) first, then 0x4A. GPIO 14 toggles as a progress indicator in the
 test apps. Change the pins in [`main/esp32_bno08x_test_config.hpp`](main/esp32_bno08x_test_config.hpp) or in each

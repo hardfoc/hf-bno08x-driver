@@ -62,7 +62,10 @@ set(MAIN_REQUIRES
     esp_timer
     freertos
     nvs_flash
+    esp_driver_gpio
     esp_driver_i2c
+    esp_driver_spi
+    esp_driver_uart
     hf_bno08x
 )
 

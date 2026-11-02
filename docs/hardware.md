@@ -138,14 +138,16 @@ Typical consumption, measured by CEVA over SPI at VDDIO 3 V and VDD 3.3 V: 0.39 
 
 ## Evaluation setup
 
-The [ESP32 examples](examples.md) run on an ESP32-S3 with a BNO08x breakout over I2C:
+The [ESP32 examples](examples.md) run on an ESP32-S3 with a BNO08x breakout, over I2C unless noted:
 
 | Signal | ESP32-S3 GPIO |
 | --- | --- |
 | SDA, SCL | 4, 5 (400 kHz, address 0x4B first, then 0x4A) |
 | H_INTN | 17 |
 | NRST | 16 |
-| UART-RVC TX, RX | 21, 20 (the RVC example) |
+| SPI SCLK, MOSI, MISO, CS | 12, 11, 13, 10 (`spi_polling`; mode 3, 3 MHz) |
+| PS0/WAKE | 18 (`spi_polling`; PS1 strapped high) |
+| UART TX, RX | 21, 20 (`uart_shtp_polling` at 3 Mbit/s, PS1 high and PS0 low; `rvc_mode` at 115200, PS1 low and PS0 high) |
 
 The pin assignment lives in
 [`esp32_bno08x_test_config.hpp`](../examples/esp32/main/esp32_bno08x_test_config.hpp).

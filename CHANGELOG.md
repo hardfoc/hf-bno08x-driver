@@ -10,8 +10,12 @@ The build settings carry version 1.0.0; no release has been tagged yet.
 
 ### Added
 
+- SPI and UART-SHTP reference ports for ESP-IDF, `examples/esp32/main/esp32_bno08x_spi_bus.hpp` (mode 3 at
+  3 MHz, header-first reads in one chip select, PS0/WAKE handling) and `esp32_bno08x_uart_bus.hpp` (3 Mbit/s,
+  buffer status query, 100 µs host byte spacing), with the example apps `spi_polling` and `uart_shtp_polling`.
 - `inc/bno08x_shtp_uart.hpp`: portable UART-SHTP framing (flags, protocol IDs, byte stuffing, buffer status) for
   any UART port, with host tests.
+- Every ESP32 example app is now built by CI (`ci_enabled: true` in `app_config.yml`).
 - Host unit tests (`-DHF_BNO08X_BUILD_TESTS=ON`) against a mock transport: UART-RVC parsing with the
   datasheet's example frame, interface and state guards, reset and bootloader pin sequences, DFU image checks.
   A CI workflow runs them with GCC and Clang.
