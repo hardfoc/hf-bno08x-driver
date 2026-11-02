@@ -1,195 +1,76 @@
-# Quick Start
+# Quickstart
 
-This guide will get you up and running with the BNO08x driver in just a few steps.
+Read orientation from a BNO08x over I2C: wire seven signals, write a small port class, call four driver functions.
 
-## Prerequisites
+## 1. Wire it
 
-- [Driver installed](installation.md)
-- [Hardware wired](hardware_setup.md)
-- [Communication interface implemented](platform_integration.md)
+| MCU | BNO08x | Notes |
+| --- | --- | --- |
+| I2C SCL | H_SCL (pin 19) | 100 or 400 kHz; 2 kΩ to 4 kΩ pull-up to VDDIO |
+| I2C SDA | H_SDA (pin 20) | Pull-up as for SCL |
+| GPIO in | H_INTN (pin 14) | Active low: the hub has data. Use a pin that can wake the MCU |
+| GPIO out | NRST (pin 11) | Active low reset; the driver pulses it in `HardwareReset()` |
+| GND | PS0 (pin 6), PS1 (pin 5) | Both low selects I2C; sampled at reset |
+| GND or VDDIO | SA0 (pin 17) | Low: address 0x4A, high: 0x4B |
+| 3.3 V, GND | VDD, VDDIO, GND | VDD must be up no later than VDDIO |
 
-## Minimal Example
+Pull BOOTN (pin 4) high through 10 kΩ, or wire it to a GPIO if you want [firmware updates](dfu.md). Breakout
+boards usually strap PS0, PS1, SA0 and BOOTN already; check yours. The [Hardware](hardware.md) page has the full
+pin list, SPI and UART wiring and the timing.
 
-Here's a complete working example:
+## 2. Add the driver
 
-```cpp
-#include "bno08x.hpp"
+Add the repository as a submodule with its SH-2 library and link the `hf_bno08x` CMake target.
+[Installation](installation.md) covers CMake and ESP-IDF.
 
-// 1. Implement the communication interface (must include GetInterfaceType — see platform_integration.md)
-class MyComm : public bno08x::CommInterface<MyComm> {
-public:
-    BNO085Interface GetInterfaceType() { return BNO085Interface::I2C; }  // or SPI, UART, UARTRVC
-    bool Open() {
-        // Your I²C/SPI/UART initialization
-        return true;
-    }
-    void Close() { /* cleanup */ }
-    int Write(const uint8_t* data, uint32_t length) { return length; }
-    int Read(uint8_t* data, uint32_t length) { return length; }
-    bool DataAvailable() { return true; }
-    void Delay(uint32_t ms) { /* delay */ }
-    uint32_t GetTimeUs() { return 0; }
-};
-
-// 2. Create instances
-MyComm comm;
-BNO085<MyComm> imu(comm);
-
-// 3. Initialize
-if (!imu.Begin()) {
-    printf("Initialization failed\n");
-    return;
-}
-
-// 4. Enable sensors
-imu.EnableSensor(BNO085Sensor::RotationVector, 10);  // 100 Hz
-imu.EnableSensor(BNO085Sensor::Accelerometer, 50); // 20 Hz
-
-// 5. Set callback (use event.rotation.accuracy for calibration status 0–3)
-imu.SetCallback([](const SensorEvent& e) {
-    if (e.sensor == BNO085Sensor::RotationVector) {
-        printf("Quat: w=%.3f x=%.3f y=%.3f z=%.3f (accuracy=%d)\n",
-               e.rotation.w, e.rotation.x, e.rotation.y, e.rotation.z, e.rotation.accuracy);
-    }
-});
-
-// 6. Update loop
-while (true) {
-    imu.Update();  // Call as often as possible
-    delay(5);
-}
+```bash
+git submodule add https://github.com/hardfoc/hf-bno08x-driver.git external/hf-bno08x-driver
+git submodule update --init external/hf-bno08x-driver/src/sh2
 ```
 
-## Step-by-Step Explanation
+## 3. Write the port
 
-### Step 1: Include the Header
+The port is the only platform code. It moves bytes over I2C, reads H_INTN, drives NRST and BOOTN, waits and keeps
+time. Replace the `platform_*` calls with your SDK's.
 
-```cpp
-#include "bno08x.hpp"
+```cpp title="my_i2c.hpp"
+--8<-- "tests/docs/my_i2c.hpp:port"
 ```
 
-This includes the main driver class and all necessary types.
+`Read()` returns one complete SHTP transfer: it reads the 4-byte header for the length, then reads the whole
+transfer again from the start. [Porting](porting.md) explains each method and shows the UART-RVC port.
 
-### Step 2: Implement the Communication Interface
+## 4. Read orientation
 
-You need to implement the `CommInterface` for your platform. See [Platform Integration](platform_integration.md) for detailed examples.
-
-```cpp
-class MyComm : public bno08x::CommInterface<MyComm> {
-    // Implement all required methods
-};
+```cpp title="main.cpp"
+--8<-- "tests/docs/quickstart.cpp:quickstart"
 ```
 
-### Step 3: Create Driver Instance
+What each step does:
 
-```cpp
-MyComm comm;
-BNO085<MyComm> imu(comm);
-```
+1. `HardwareReset()` holds NRST low for 2 ms and waits 50 ms. PS0, PS1, SA0 and BOOTN are sampled now.
+2. `Begin()` opens the port, starts the CEVA SH-2 library, waits for the hub's reset message and sends a
+   reinitialise command. Nothing else works until it returns `true`.
+3. `EnableSensor()` asks the hub for a rotation vector every 10 ms (100 Hz).
+4. `Update()` services the SH-2 library: it reads pending transfers, decodes reports and runs your callbacks.
+   Call it at least as often as your fastest report.
 
-The constructor takes a reference to your communication interface implementation.
+`accuracy` goes from 0 (unreliable) to 3 (high). Move the board through a few orientations to calibrate the
+magnetometer. This example is built by the host CI, so it compiles against the current headers.
 
-### Step 4: Initialize
+## If it does not work
 
-```cpp
-if (!imu.Begin()) {
-    // Handle error
-    return;
-}
-```
+| Symptom | First thing to check |
+| --- | --- |
+| `Begin()` returns `false`, `GetLastError()` is `SH2_ERR` (-1) | `Open()` failed: bus pins, pull-ups, the address (0x4A or 0x4B) |
+| `Begin()` returns `false` with `SH2_ERR_TIMEOUT` (-6) | H_INTN not wired or read inverted; PS0/PS1 not both low at reset |
+| No reports after `EnableSensor()` | `Update()` not called often enough; `HasNewData()` checked for another sensor |
+| `accuracy` stays at 0 | Magnetic interference near the board; move it in a figure eight |
 
-### Step 5: Enable Sensors
+[Troubleshooting](troubleshooting.md) has more.
 
-```cpp
-imu.EnableSensor(BNO085Sensor::RotationVector, 10);  // 100 Hz
-```
+## Next
 
-The interval is in milliseconds. Use `0` for on-change sensors.
-
-### Step 6: Set Callback
-
-```cpp
-imu.SetCallback([](const SensorEvent& e) {
-    // Handle sensor events
-});
-```
-
-### Step 7: Update Loop
-
-```cpp
-while (true) {
-    imu.Update();  // Must be called frequently
-    delay(5);
-}
-```
-
-## Complete Example with Error Handling
-
-```cpp
-#include "bno08x.hpp"
-
-class MyComm : public bno08x::CommInterface<MyComm> {
-    // ... communication implementation
-};
-
-void app_main() {
-    MyComm comm;
-    BNO085<MyComm> imu(comm);
-
-    // Initialize
-    if (!imu.Begin()) {
-        printf("Initialization failed\n");
-        return;
-    }
-
-    // Enable sensors
-    if (!imu.EnableSensor(BNO085Sensor::RotationVector, 10)) {
-        printf("Failed to enable rotation vector\n");
-        return;
-    }
-
-    // Set callback
-    imu.SetCallback([](const SensorEvent& e) {
-        if (e.sensor == BNO085Sensor::RotationVector) {
-            printf("Quat: w=%.3f x=%.3f y=%.3f z=%.3f\n",
-                   e.rotation.w, e.rotation.x, e.rotation.y, e.rotation.z);
-        }
-    });
-
-    // Main loop
-    while (true) {
-        imu.Update();
-        vTaskDelay(pdMS_TO_TICKS(5));
-    }
-}
-```
-
-## Expected Output
-
-When running this example, you should see quaternion and optionally accuracy (0–3, 3 = fully calibrated):
-
-```
-Quat: w=0.924 x=0.012 y=-0.018 z=0.382 (accuracy=3)
-Quat: w=0.924 x=0.012 y=-0.018 z=0.383 (accuracy=3)
-```
-
-## Troubleshooting
-
-If you encounter issues:
-
-- **Compilation errors**: Check that you've implemented all required methods in your communication interface
-- **Initialization fails**: Verify I²C/SPI connections and hardware setup
-- **No data**: Ensure `Update()` is called frequently
-- **See**: [Troubleshooting](troubleshooting.md) for common issues
-
-## Next Steps
-
-- Explore [Examples](examples.md) for more advanced usage
-- Review the [API Reference](api_reference.md) for all available methods
-- Check [Configuration](configuration.md) for customization options
-
----
-
-**Navigation**
-⬅️ [Installation](installation.md) | [Next: Hardware Setup ➡️](hardware_setup.md) | [Back to Index](index.md)
-
+- [API guide](api-guide.md): callbacks, polling, several reports, errors.
+- [Configuration](configuration.md): report rates and the 40 report types.
+- [UART-RVC mode](rvc.md): orientation over a single UART line, no protocol.

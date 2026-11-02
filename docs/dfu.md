@@ -1,212 +1,76 @@
-# DFU (Device Firmware Update)
+# Firmware update
 
-The BNO08x driver includes support for updating sensor firmware via the Device Firmware Update (DFU) protocol. This allows you to update the sensor's firmware without removing it from your system.
+Replace the BNO08x's SH-2 firmware in the field through its bootloader, with an image you supply.
 
-## Overview
+!!! warning "Use an image from CEVA for your exact part"
+    A wrong or interrupted image leaves the hub in the bootloader. Keep BOOTN on a GPIO so you can always re-enter
+    it, keep the supply stable during the transfer, and check that the image's part number matches your part.
 
-DFU is built into the BNO085 driver: use the same **CommInterface** (I²C, SPI, or UART SH-2) and call `imu.Dfu(...)` / `imu.DfuFromMemory(...)`. The sensor must be in bootloader mode (BOOTN held low during reset). **DFU is not available when the transport reports `UARTRVC`** — use I²C, SPI, or UART SH-2.
+## What the bootloader needs
 
-DFU allows you to:
-- Update sensor firmware in the field
-- Fix firmware bugs without hardware replacement
-- Upgrade to newer firmware versions
+- **BOOTN low at reset.** The bootloader samples BOOTN with PS0 and PS1 when NRST rises. Wire BOOTN to a GPIO
+  (with its 10 kΩ pull-up) and NRST to another.
+- **I2C, SPI or UART.** The bootloader uses the interface the PS pins select; UART-RVC has no bootloader mode, so
+  the DFU calls fail with `SH2_ERR_BAD_PARAM` on a `UARTRVC` port.
+- **A different I2C address.** Over I2C the bootloader answers at `0x28` (SA0 low) or `0x29` (SA0 high), not
+  `0x4A` / `0x4B`. The driver does not switch addresses: your port must talk to the bootloader address between
+  `EnterBootloader()` and `ExitBootloaderAndReboot()`.
+- **A vendor image.** CEVA supplies BNO08x firmware as an HcBin image with metadata (`FW-Format`, `SW-Part-Number`).
+  The image compiled in from `src/dfu/firmware-bno.c` is a 64-byte stub that the driver refuses.
 
-## Entering Bootloader Mode
-
-The sensor must be in bootloader mode to perform a firmware update:
-
-1. **Hold BOOTN pin low** (active low)
-2. **Reset the sensor** (toggle RSTN pin or power cycle)
-3. **Release BOOTN** after reset completes
-4. Sensor is now in bootloader mode
-
-**Hardware Method (manual):**
-```cpp
-// If you have BOOTN and RSTN pins wired
-imu.SetBootPin(true);   // BOOTN low
-imu.HardwareReset(10);   // Reset for 10ms
-imu.SetBootPin(false);   // Release BOOTN
-```
-
-**Class-aware helper method:**
-```cpp
-if (!imu.EnterBootloader(10, 50)) {
-    printf("Failed to enter bootloader: %d\n", imu.GetLastError());
-}
-```
-
-**Manual Method:**
-- Physically hold BOOTN pin low
-- Power cycle or reset the sensor
-- Release BOOTN
-
-## Firmware Image Format
-
-Firmware must be provided as an `HcBin_t` object. The driver includes a compile-time stub:
-
-- **`src/dfu/firmware-bno.c`** / **`src/dfu/firmware.h`**: Stub firmware for BNO08x (symbol `firmware`). For production, obtain firmware from the sensor vendor.
-
-For firmware loaded at runtime (e.g. from flash or network), use **`MemoryFirmware`** (see [Firmware Sources](#firmware-sources) below).
-
-## Implementation
-
-Use your existing **CommInterface** (I²C, SPI, or UART — not UARTRVC). Enter bootloader mode, then call `imu.Dfu(fw)`.
-
-### Step 1: Enter bootloader mode
-
-Hold BOOTN low, reset the sensor, then release BOOTN. If your transport implements `SetBoot()` and `SetReset()`, the driver’s `SetBootPin()` and `HardwareReset()` will use them.
-
-### Step 2: Perform firmware update
+## Update from memory
 
 ```cpp
-#include "bno08x.hpp"
-#include "src/dfu/firmware.h"   // Provides default 'firmware' HcBin_t
-
-// Use your normal transport (e.g. Esp32Bno08xBus)
-BNO085<Esp32Bno08xBus> imu(*transport);
-
-// Enter bootloader first: SetBootPin(true), HardwareReset(10), SetBootPin(false)
-// Then close/reopen transport if required by your platform.
-
-int result = imu.Dfu(firmware);
-if (result == SH2_OK) {
-    printf("Firmware update successful!\n");
-} else {
-    printf("Firmware update failed: %d\n", result);
-}
+--8<-- "tests/docs/dfu.cpp:dfu"
 ```
 
-### Step 3: Runtime firmware (class-aware memory DFU)
+`RunDfuFromMemory()` does the whole sequence and returns `SH2_OK` (0) or a negative SH-2 code:
 
-If the image is already in memory or flash, use `DfuFromMemory`:
+<div class="hf-steps" markdown>
 
-```cpp
-#include "bno08x.hpp"
+1. **Enter the bootloader.** `EnterBootloader(10, 50)`: close any open session, open the port, assert BOOTN, hold
+   NRST low 10 ms, wait 50 ms, release BOOTN, wait 50 ms.
+2. **Check the image.** `FW-Format` must be `BNO_V1` and `SW-Part-Number` a known part (or the one you require),
+   and the image at least 1024 bytes; otherwise `SH2_ERR_BAD_PARAM` before anything is sent.
+3. **Send the size.** The application length as 4 bytes big-endian plus CRC-16, then the packet length (1 to 64
+   bytes) plus CRC-16. The bootloader acknowledges each with `s`.
+4. **Send the image.** Packets of up to 64 bytes, each with a CRC-16 (CCITT, polynomial 0x1021, initial value
+   0xFFFF), each acknowledged; up to 5 attempts and 100 ms per packet. `options.progress` runs after each one.
+5. **Reboot.** `ExitBootloaderAndReboot(2, 100)`: BOOTN high, NRST low 2 ms, wait 50 ms plus 100 ms. Then call
+   `Begin()` as usual.
 
-const uint8_t* fw_data = /* pointer to firmware bytes */;
-uint32_t fw_size = /* size in bytes */;
+</div>
 
-DfuMemoryImage image{};
-image.data = fw_data;
-image.length = fw_size;
-image.format = "BNO_V1";
-image.partNumber = "1000-3608";
+## Options
 
-DfuOptions opts{};
-opts.progress = [](const DfuProgress& p) {
-    printf("DFU %lu/%lu\n", (unsigned long)p.bytesSent, (unsigned long)p.totalBytes);
-};
+| `DfuOptions` field | Default | Effect |
+| --- | --- | --- |
+| `requireFormatMatch` | `true` | Check the image's `FW-Format` against `requiredFormat` |
+| `requiredFormat` | `"BNO_V1"` | Expected format |
+| `requirePartNumber` | `true` | Check `SW-Part-Number` against `requiredPartNumber`, or, when that is null, against the known part numbers `1000-3608`, `1000-3676`, `1000-4148`, `1000-4563` |
+| `requiredPartNumber` | `nullptr` | Exact part number to require |
+| `packetLenOverride` | 0 | Packet length 1 to 64; 0 uses the image's preference, capped at 64 |
+| `progress` | empty | Called with 0 bytes before the first packet, then after each packet |
 
-int result = imu.DfuFromMemory(image, opts);
-```
+`DfuMemoryImage` describes a raw image in memory: `data`, `length`, `format`, `partNumber` and an optional
+`preferredPacketLen`. For an image you stream from storage, implement the `HcBin_t` function table
+([`src/dfu/HcBin.h`](../src/dfu/HcBin.h)) and call `DfuWithOptions(image, options)` between the bootloader calls.
 
-## Complete example (ESP32)
+## Step by step
 
-See `examples/esp32/main/dfu_example.cpp` for a full flow. Summary:
+Call the pieces yourself when you need to do something between them, such as switching the I2C address:
 
-```cpp
-auto transport = CreateEsp32Bno08xBus(config);
-BNO085<Esp32Bno08xBus> imu(*transport);
+| Call | Does |
+| --- | --- |
+| `EnterBootloader(resetLowMs = 10, settleMs = 50)` | BOOTN + reset sequence above; `false` on a `UARTRVC` port or during a transfer |
+| `DfuFromMemory(image, options)` | Steps 2 to 4 from a `DfuMemoryImage` |
+| `DfuWithOptions(hcbin, options)` / `Dfu(hcbin)` | Steps 2 to 4 from any `HcBin_t`; `Dfu()` uses the default options |
+| `ExitBootloaderAndReboot(resetLowMs = 2, settleMs = 100)` | BOOTN released, reset, wait |
 
-// 1) Enter bootloader (helper)
-imu.EnterBootloader(10, 50);
+During the transfer `GetState()` is `DfuInProgress` and `Close()` is refused. A transfer that starts while an SH-2
+session is open closes the session first.
 
-// 2) Run DFU
-int result = imu.Dfu(firmware);   // or imu.DfuFromMemory(image, opts)
+## Next
 
-// 3) Reboot into application firmware
-imu.ExitBootloaderAndReboot(2, 100);
-
-// 4) Start normal SH-2 mode
-imu.Begin();
-```
-
-## Timeout Handling
-
-The DFU implementation includes built-in timeouts for slow communication links:
-- **Default timeout**: Several minutes (varies by firmware size)
-- **Automatic retries**: Built into DFU protocol
-- **Progress indication**: Check return codes for status
-
-## Error Codes
-
-DFU returns SH-2 status codes:
-- **`SH2_OK` (0)**: Update successful
-- **`SH2_ERR` (non-zero)**: Update failed
-
-Common error causes:
-- Communication timeout
-- Invalid firmware image
-- Bootloader not responding
-- Checksum mismatch
-
-## Firmware Sources
-
-### Compile-Time Firmware
-
-```cpp
-#include "src/dfu/firmware.h"
-
-// Use default firmware object
-imu.Dfu(firmware);
-```
-
-### Runtime Firmware (class-aware)
-
-```cpp
-const uint8_t* fw_data = load_from_flash();
-size_t fw_size = get_firmware_size();
-
-DfuMemoryImage image{fw_data, static_cast<uint32_t>(fw_size), "BNO_V1", "1000-3608", 0};
-imu.DfuFromMemory(image);
-```
-
-### Network/File Firmware
-
-```cpp
-std::vector<uint8_t> fw_data = load_firmware_file("firmware.bin");
-DfuOptions opts{};
-opts.requirePartNumber = false; // if metadata handling is done externally
-imu.DfuFromMemory(fw_data.data(), static_cast<uint32_t>(fw_data.size()), "1000-3608", opts);
-```
-
-## Best Practices
-
-1. **Backup Current Firmware**: If possible, read current firmware before updating
-2. **Verify Firmware Source**: Ensure firmware is from trusted source
-3. **Test First**: Test firmware update process in development before field deployment
-4. **Handle Errors**: Always check return codes and handle failures gracefully
-5. **Power Stability**: Ensure stable power during update (avoid brownouts)
-6. **Don't Interrupt**: Never interrupt firmware update process
-
-## Troubleshooting
-
-### Update Fails Immediately
-
-- **Check Bootloader Mode**: Verify sensor is actually in bootloader mode
-- **Verify Communication**: Test communication interface works
-- **Check Firmware**: Ensure firmware image is valid
-
-### Update Times Out
-
-- **Increase Timeout**: Modify timeout values in DFU source if needed
-- **Check Communication Speed**: Try slower communication speed
-- **Verify Connection**: Check all connections are secure
-
-### Sensor Doesn't Respond After Update
-
-- **Reset Sensor**: Perform hardware reset after update
-- **Reinitialize**: Call `Begin()` again after reset
-- **Check Firmware**: Verify firmware is compatible with your sensor model
-
-## Next Steps
-
-- Review [Examples](examples.md) for more usage examples
-- Check [Troubleshooting](troubleshooting.md) for common issues
-- See [RVC Mode](special_feature_rvc.md) for alternative operation mode
-
----
-
-**Navigation**
-⬅️ [RVC Mode](special_feature_rvc.md) | [Back to Index](index.md)
-
+The [`dfu_update` and `dfu_workflow_test`](examples.md) ESP32 apps run this on hardware;
+[Hardware](hardware.md#control-pins) has the BOOTN and NRST wiring.

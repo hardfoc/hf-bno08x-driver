@@ -1,0 +1,14 @@
+{
+  "driver-layers": {
+    "title": "Three layers, one of them yours",
+    "alt": "Layer diagram: the application calls the hardware-agnostic BNO085 driver, which uses the CEVA SH-2 library or its own UART-RVC parser, then the CRTP communication interface, which calls the platform port you write, which drives the I2C, SPI or UART bus and the control pins of the BNO08x.",
+    "description": "From top to bottom. Your application talks to one BNO085<Comm> object, whose public calls are listed from inc/bno08x.hpp. In SH-2 mode the core hands every transfer to the CEVA SH-2 and SHTP library (the src/sh2 submodule); in UART-RVC mode it parses the 19-byte frames itself; firmware updates use the bootloader protocol in the core. Both paths end in the communication interface (bno08x::CommInterface in inc/bno08x_comm_interface.hpp), a CRTP base whose methods your platform port implements: move bytes, report data-ready, wait, keep time and drive the control pins. Below it is the sensor hub.",
+    "profile": "overview",
+    "width": 1200,
+    "source": "docs/diagrams/figures/driver-layers.py",
+    "sources": [
+      "inc/bno08x.hpp:BNO085 public members",
+      "inc/bno08x_comm_interface.hpp:CommInterface"
+    ]
+  }
+}

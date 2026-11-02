@@ -1,358 +1,112 @@
-# Platform Integration Guide
+# Porting
 
-This guide explains how to implement the CRTP-based communication interface for the BNO08x driver on your platform.
+Run the driver on a new MCU by writing one class: the communication interface for your bus.
 
-## Understanding CRTP (Curiously Recurring Template Pattern)
+The driver never calls your SDK directly. It calls nine methods on a class you derive from
+`bno08x::CommInterface<Self>` (in [`inc/bno08x_comm_interface.hpp`](../inc/bno08x_comm_interface.hpp)). The base
+class uses CRTP: the calls are resolved at compile time, so there are no virtual functions and no vtable.
 
-The BNO08x driver uses **CRTP** (Curiously Recurring Template Pattern) for hardware abstraction. This design choice provides several critical benefits for embedded systems:
+<!-- figure: driver-layers -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/driver-layers.dark.svg">
+  <img src="diagrams/driver-layers.svg"
+    alt="Layer diagram: the application calls the hardware-agnostic BNO085 driver, which uses the CEVA SH-2
+    library or its own UART-RVC parser, then the CRTP communication interface, which calls the platform
+    port you write, which drives the I2C, SPI or UART bus and the control pins of the BNO08x.">
+</picture>
+<!-- /figure -->
 
-### Why CRTP Instead of Virtual Functions?
+## What you implement
 
-#### 1. **Zero Runtime Overhead**
-- **Virtual functions**: Require a vtable lookup (indirect call) = ~5-10 CPU cycles overhead per call
-- **CRTP**: Direct function calls = 0 overhead, compiler can inline
-- **Impact**: In time-critical IMU data processing, this matters significantly
+| Method | Called by | Contract |
+| --- | --- | --- |
+| `GetInterfaceType()` | `Begin()`, `BeginRvc()`, the DFU calls | Return `I2C`, `SPI`, `UART` or `UARTRVC`; it decides which calls are allowed |
+| `Open()` | `Begin()`, `BeginRvc()`, the bootloader helpers, DFU | Initialise the bus and pins. May be called again while open: return `true` without re-initialising |
+| `Close()` | `Close()`, `CloseRvc()`, the end of a DFU transfer | Release the bus |
+| `Write(data, length)` | SH-2 library, DFU | Send one SHTP transfer (or DFU packet). Return the bytes accepted, 0 if the bus is busy, negative on error |
+| `Read(data, length)` | SH-2 library, RVC parser, DFU | SH-2: return one **complete** SHTP transfer, header included, or 0 when there is none. RVC: return whatever bytes have arrived, without blocking |
+| `DataAvailable()` | your port, usually inside `Read()` | `true` when H_INTN is low; `true` always when there is no interrupt line |
+| `Delay(ms)` | reset and bootloader sequences | Block for at least `ms` milliseconds |
+| `GetTimeUs()` | SH-2 timestamps and timeouts, RVC timestamps | A monotonic 32-bit microsecond counter; wrapping is fine |
+| `GpioSet(pin, signal)` | `HardwareReset()`, `SetBootPin()`, `SetWakePin()`, `SelectInterface()` | Drive `RSTN`, `BOOTN`, `WAKE`, `PS0`, `PS1`; ignore pins the board does not wire |
 
-#### 2. **Compile-Time Polymorphism**
-- **Virtual functions**: Runtime dispatch - the compiler cannot optimize across the abstraction boundary
-- **CRTP**: Compile-time dispatch - full optimization, dead code elimination, constant propagation
-- **Impact**: Smaller code size, faster execution
+`GpioSetActive(pin)` and `GpioSetInactive(pin)` come with the base class.
 
-#### 3. **Memory Efficiency**
-- **Virtual functions**: Each object needs a vtable pointer (4-8 bytes)
-- **CRTP**: No vtable pointer needed
-- **Impact**: Critical in memory-constrained systems
+## I2C port
 
-#### 4. **Type Safety**
-- **Virtual functions**: Runtime errors if method not implemented
-- **CRTP**: Compile-time errors if method not implemented
-- **Impact**: Catch bugs at compile time, not in the field
-
-### How CRTP Works
-
-```cpp
-// Base template class (from bno08x_comm_interface.hpp)
-template <typename Derived>
-class CommInterface {
-public:
-    bool Open() {
-        // Cast 'this' to Derived* and call the derived implementation
-        return static_cast<Derived*>(this)->Open();
-    }
-
-    int Read(uint8_t* data, uint32_t length) {
-        return static_cast<Derived*>(this)->Read(data, length);
-    }
-
-    // ... other methods
-};
-
-// Your implementation
-class MyComm : public bno08x::CommInterface<MyComm> {
-public:
-    // This method is called directly (no virtual overhead)
-    bool Open() {
-        // Your platform-specific initialization code
-        return true;
-    }
-
-    int Read(uint8_t* data, uint32_t length) {
-        // Your platform-specific read code
-        return length;
-    }
-};
+```cpp title="my_i2c.hpp"
+--8<-- "tests/docs/my_i2c.hpp:port"
 ```
 
-## Interface Definition
+Rules the transfer must follow:
 
-The BNO08x driver requires you to implement the following interface:
+- **Plain transactions.** One START ... STOP per call, no register address, no repeated start.
+- **Read the length, then the transfer.** Bits 0 to 14 of the 4-byte SHTP header are the transfer length, header
+  included; bit 15 marks a continuation. On I2C every read starts at the header again, so read 4 bytes, then the
+  whole length. A zero length is an empty transfer (BNO086 sends them when it has nothing): return 0.
+- **Gate on H_INTN.** Reading when the hub has nothing makes a BNO085 stretch the clock until it does.
+- **Return a negative value only for a bus failure.** The SH-2 library handles protocol errors.
 
-```cpp
-template <typename Derived>
-class CommInterface {
-public:
-    // Required methods (implement all of these)
-    BNO085Interface GetInterfaceType();  // I2C, SPI, UART, or UARTRVC — driver uses this to allow Begin(), BeginRvc(), or Dfu()
-    bool Open();
-    void Close();
-    int Write(const uint8_t* data, uint32_t length);
-    int Read(uint8_t* data, uint32_t length);
-    bool DataAvailable();
-    void Delay(uint32_t ms);
-    uint32_t GetTimeUs();
+## UART-RVC port
 
-    // Optional methods (implement if pins are wired)
-    void SetReset(bool state);
-    void SetBoot(bool state);
-    void SetWake(bool state);
-    void SetPS0(bool state);
-    void SetPS1(bool state);
-};
+```cpp title="my_rvc.hpp"
+--8<-- "tests/docs/my_rvc.hpp:port"
 ```
 
-## Implementation Steps
+`ServiceRvc()` calls `Read(&byte, 1)` until it returns 0, so `Read()` must not block. Give the UART a receive
+buffer of a few frames (19 bytes each, one every 10 ms) so nothing is lost between calls.
 
-### Step 1: Create Your Implementation Class
+## SPI and UART-SHTP ports
 
-```cpp
-#include "bno08x_comm_interface.hpp"
+The driver supports both through the same interface: report `SPI` or `UART` from `GetInterfaceType()` and keep the
+`Read()` contract (one complete SHTP transfer). The repository has no reference port for either yet. Points to
+cover:
 
-class MyPlatformComm : public bno08x::CommInterface<MyPlatformComm> {
-private:
-    // Your platform-specific members
-    i2c_handle_t i2c_handle_;  // Example for I²C
+=== "SPI"
 
-public:
-    // Constructor
-    MyPlatformComm(i2c_handle_t handle) : i2c_handle_(handle) {}
+    - Mode 3, MSB first, up to 3 MHz. Wait for H_INTN low before you assert H_CSN.
+    - SPI is full duplex: the hub may send while you write. Read the 4-byte header first to learn the length,
+      and follow the
+      [SHTP specification](https://www.ceva-ip.com/wp-content/uploads/2019/10/Sensor-Hub-Transport-Protocol.pdf)
+      for the SPI framing.
+    - Map `CtrlPin::WAKE` to the PS0/WAKE GPIO: drive it low to wake the hub before a write.
 
-    // Implement required methods
-    bool Open() {
-        // Your initialization code
-        return true;
-    }
+=== "UART"
 
-    void Close() {
-        // Your cleanup code
-    }
+    - 3 Mbit/s, 8N1, with an external 32.768 kHz clock or crystal on the BNO08x.
+    - SHTP over UART adds framing bytes around each transfer; see the
+      [SHTP specification](https://www.ceva-ip.com/wp-content/uploads/2019/10/Sensor-Hub-Transport-Protocol.pdf).
+    - Leave at least 100 µs between bytes sent to the hub.
 
-    int Write(const uint8_t* data, uint32_t length) {
-        // Your write code
-        return length;
-    }
+## Control-pin levels
 
-    int Read(uint8_t* data, uint32_t length) {
-        // Your read code
-        return length;
-    }
+`GpioSignal::ACTIVE` means "function asserted". On the BNO08x that is a low level for NRST, BOOTN and WAKE, and a
+high level (logic 1) for PS0 and PS1. Your `GpioSet()` applies the board's levels; inverters or level shifters
+change them.
 
-    bool DataAvailable() {
-        // Check if data is available (e.g., via interrupt pin)
-        return true;
-    }
+| Pin | ACTIVE level on the chip | Board without the pin |
+| --- | --- | --- |
+| `RSTN` | low | Tie NRST to the board reset; `HardwareReset()` then only waits |
+| `BOOTN` | low | Pull up through 10 kΩ; no firmware updates |
+| `WAKE` | low | Not needed on I2C or UART |
+| `PS0`, `PS1` | high | Strap them ([Hardware](hardware.md#protocol-selection)) |
 
-    void Delay(uint32_t ms) {
-        // Your delay implementation
-    }
+## Reference implementation
 
-    uint32_t GetTimeUs() {
-        // Return current time in microseconds
-        return 0;
-    }
-};
-```
+The ESP32 examples use [`esp32_bno08x_bus.hpp`](../examples/esp32/main/esp32_bno08x_bus.hpp), an ESP-IDF
+`i2c_master` port with H_INTN and NRST, and [`esp32_uart_rvc_bus.hpp`](../examples/esp32/main/esp32_uart_rvc_bus.hpp)
+for UART-RVC. Start from them for an ESP-IDF target. The I2C reference reads the whole 1024-byte buffer on every
+`Read()`; the header-first read on this page moves far fewer bytes.
 
-### Step 2: Platform-Specific Examples
+## Check your port
 
-#### ESP32 (ESP-IDF) - I²C
+1. Build it: both ports on this page are compiled by the host CI from [`tests/docs/`](../tests/docs/my_i2c.hpp),
+   with the driver instantiated over them.
+2. Watch H_INTN after `HardwareReset()`: it goes low about 94 ms after NRST rises when the strapping is right.
+3. `Begin()` returns `true`: the SH-2 library received the hub's reset message and a reply to a command.
+4. Enable `RotationVector` at 10 ms and count reports for a second: about 100 means reads keep up.
 
-```cpp
-#include "driver/i2c.h"
-#include "bno08x_comm_interface.hpp"
+## Threads
 
-class Esp32I2CComm : public bno08x::CommInterface<Esp32I2CComm> {
-private:
-    i2c_port_t i2c_port_;
-    uint8_t device_addr_;
-
-public:
-    Esp32I2CComm(i2c_port_t port, uint8_t addr)
-        : i2c_port_(port), device_addr_(addr) {}
-
-    bool Open() {
-        i2c_config_t conf = {};
-        conf.mode = I2C_MODE_MASTER;
-        conf.sda_io_num = GPIO_NUM_4;
-        conf.scl_io_num = GPIO_NUM_5;
-        conf.master.clk_speed = 400000;
-        i2c_param_config(i2c_port_, &conf);
-        i2c_driver_install(i2c_port_, conf.mode, 0, 0, 0);
-        return true;
-    }
-
-    void Close() {
-        i2c_driver_delete(i2c_port_);
-    }
-
-    int Write(const uint8_t* data, uint32_t length) {
-        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-        i2c_master_start(cmd);
-        i2c_master_write_byte(cmd, (device_addr_ << 1) | I2C_MASTER_WRITE, true);
-        i2c_master_write(cmd, data, length, true);
-        i2c_master_stop(cmd);
-        esp_err_t ret = i2c_master_cmd_begin(i2c_port_, cmd, pdMS_TO_TICKS(1000));
-        i2c_cmd_link_delete(cmd);
-        return (ret == ESP_OK) ? length : -1;
-    }
-
-    int Read(uint8_t* data, uint32_t length) {
-        i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-        i2c_master_start(cmd);
-        i2c_master_write_byte(cmd, (device_addr_ << 1) | I2C_MASTER_READ, true);
-        if (length > 1) {
-            i2c_master_read(cmd, data, length - 1, I2C_MASTER_ACK);
-        }
-        i2c_master_read_byte(cmd, data + length - 1, I2C_MASTER_NACK);
-        i2c_master_stop(cmd);
-        esp_err_t ret = i2c_master_cmd_begin(i2c_port_, cmd, pdMS_TO_TICKS(1000));
-        i2c_cmd_link_delete(cmd);
-        return (ret == ESP_OK) ? length : -1;
-    }
-
-    bool DataAvailable() {
-        // Check interrupt pin or always return true
-        return true;
-    }
-
-    void Delay(uint32_t ms) {
-        vTaskDelay(pdMS_TO_TICKS(ms));
-    }
-
-    uint32_t GetTimeUs() {
-        return esp_timer_get_time();
-    }
-};
-```
-
-#### STM32 (HAL) - I²C
-
-```cpp
-#include "stm32f4xx_hal.h"
-#include "bno08x_comm_interface.hpp"
-
-extern I2C_HandleTypeDef hi2c1;
-
-class STM32I2CComm : public bno08x::CommInterface<STM32I2CComm> {
-private:
-    uint16_t device_addr_;
-
-public:
-    STM32I2CComm(uint16_t addr) : device_addr_(addr << 1) {}
-
-    bool Open() {
-        return HAL_I2C_IsDeviceReady(&hi2c1, device_addr_, 3, 100) == HAL_OK;
-    }
-
-    void Close() {
-        // Nothing to do
-    }
-
-    int Write(const uint8_t* data, uint32_t length) {
-        HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(&hi2c1, device_addr_,
-                                                          const_cast<uint8_t*>(data),
-                                                          length, 100);
-        return (status == HAL_OK) ? length : -1;
-    }
-
-    int Read(uint8_t* data, uint32_t length) {
-        HAL_StatusTypeDef status = HAL_I2C_Master_Receive(&hi2c1, device_addr_,
-                                                          data, length, 100);
-        return (status == HAL_OK) ? length : -1;
-    }
-
-    bool DataAvailable() {
-        return true;
-    }
-
-    void Delay(uint32_t ms) {
-        HAL_Delay(ms);
-    }
-
-    uint32_t GetTimeUs() {
-        return HAL_GetTick() * 1000;
-    }
-};
-```
-
-#### Arduino - I²C
-
-```cpp
-#include <Wire.h>
-#include "bno08x_comm_interface.hpp"
-
-class ArduinoComm : public bno08x::CommInterface<ArduinoComm> {
-private:
-    uint8_t device_addr_;
-
-public:
-    ArduinoComm(uint8_t addr) : device_addr_(addr) {}
-
-    bool Open() {
-        Wire.begin();
-        Wire.setClock(400000);
-        delay(50);
-        return true;
-    }
-
-    void Close() {
-        // Nothing to do
-    }
-
-    int Write(const uint8_t* data, uint32_t length) {
-        Wire.beginTransmission(device_addr_);
-        Wire.write(data, length);
-        return (Wire.endTransmission() == 0) ? length : -1;
-    }
-
-    int Read(uint8_t* data, uint32_t length) {
-        Wire.requestFrom(device_addr_, length);
-        size_t count = 0;
-        while (Wire.available() && count < length) {
-            data[count++] = Wire.read();
-        }
-        return count;
-    }
-
-    bool DataAvailable() {
-        return true;
-    }
-
-    void Delay(uint32_t ms) {
-        delay(ms);
-    }
-
-    uint32_t GetTimeUs() {
-        return micros();
-    }
-};
-```
-
-## Optional Pin Control Methods
-
-If your hardware has these pins wired, implement the optional methods:
-
-```cpp
-void SetReset(bool state) {
-    // Control RSTN pin (active low)
-    gpio_set_level(rst_pin_, state ? 0 : 1);
-}
-
-void SetBoot(bool state) {
-    // Control BOOTN pin (for DFU mode)
-    gpio_set_level(boot_pin_, state ? 0 : 1);
-}
-
-void SetWake(bool state) {
-    // Control WAKE pin (SPI mode only)
-    gpio_set_level(wake_pin_, state ? 0 : 1);
-}
-```
-
-## Testing Your Implementation
-
-1. Create a simple test that opens the interface
-2. Verify I²C/SPI communication works
-3. Test read/write operations
-4. Verify timing functions return correct values
-
-## Next Steps
-
-- Review the [API Reference](api_reference.md) for driver methods
-- Check [Examples](examples.md) for complete usage examples
-- See [Troubleshooting](troubleshooting.md) for common issues
-
----
-
-**Navigation**
-⬅️ [Hardware Setup](hardware_setup.md) | [Next: Configuration ➡️](configuration.md) | [Back to Index](index.md)
-
+The driver is not thread-safe, and the CEVA SH-2 library keeps one global session. Give the sensor one owner task
+that calls `Update()`, or guard every call on the driver object (and its port) with one mutex.
