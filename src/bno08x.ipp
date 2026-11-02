@@ -929,7 +929,7 @@ void BNO085<CommType>::dfuAppendCrc(uint8_t* packet, uint8_t len) noexcept {
  * @return SH2_OK on success, or a negative SH-2 error code.
  */
 template <typename CommType>
-int BNO085<CommType>::dfuSend(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept {
+int BNO085<CommType>::dfuSend(uint8_t* p_data, uint32_t len) noexcept {
   unsigned int retries = 0;
   int status = SH2_OK;
   uint8_t ack = 0;
@@ -976,7 +976,7 @@ template <typename CommType>
 int BNO085<CommType>::dfuSendAppSize(uint8_t* dfu_buff, uint32_t app_size) noexcept {
   dfuWrite32be(dfu_buff, app_size);
   dfuAppendCrc(dfu_buff, 4);
-  return dfuSend(dfu_buff, dfu_buff, 6);
+  return dfuSend(dfu_buff, 6);
 }
 
 /** @brief Send the 1-byte packet size + CRC. */
@@ -984,7 +984,7 @@ template <typename CommType>
 int BNO085<CommType>::dfuSendPktSize(uint8_t* dfu_buff, uint8_t packet_len) noexcept {
   dfu_buff[0] = packet_len;
   dfuAppendCrc(dfu_buff, 1);
-  return dfuSend(dfu_buff, dfu_buff, 3);
+  return dfuSend(dfu_buff, 3);
 }
 
 /** @brief Send one firmware data packet + CRC. */
@@ -992,7 +992,49 @@ template <typename CommType>
 int BNO085<CommType>::dfuSendPkt(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept {
   std::memcpy(dfu_buff, p_data, len);
   dfuAppendCrc(dfu_buff, len);
-  return dfuSend(dfu_buff, dfu_buff, len + 2);
+  return dfuSend(dfu_buff, len + 2);
+}
+
+/**
+ * @brief Switch an I2C port to the bootloader address for a DFU transfer.
+ *
+ * The bootloader answers at 0x28 | SA0 (datasheet 1000-3927 section 1.4).
+ * Ports without the optional address hooks are left alone.
+ *
+ * @param[out] appAddress  The port's address before the switch.
+ * @param[out] switched    True when the address was changed and must be restored.
+ * @return SH2_OK, SH2_ERR_BAD_PARAM (not a BNO08x address) or SH2_ERR_IO.
+ */
+template <typename CommType>
+int BNO085<CommType>::dfuSelectBootloaderAddress(uint8_t& appAddress, bool& switched) noexcept {
+  switched = false;
+  appAddress = 0;
+  if constexpr (bno08x::detail::kHasI2cAddressHooks<CommType>) {
+    appAddress = io_.GetI2cAddress();
+    const uint8_t boot = BootloaderI2cAddress(appAddress);
+    if (boot == 0) {
+      return SH2_ERR_BAD_PARAM;
+    }
+    if (boot == appAddress) {
+      return SH2_OK; // the port already talks to the bootloader
+    }
+    if (!io_.SetI2cAddress(boot)) {
+      return SH2_ERR_IO;
+    }
+    switched = true;
+  }
+  return SH2_OK;
+}
+
+/** @brief Restore the application I2C address after a DFU transfer. */
+template <typename CommType>
+bool BNO085<CommType>::dfuRestoreAppAddress(uint8_t appAddress) noexcept {
+  if constexpr (bno08x::detail::kHasI2cAddressHooks<CommType>) {
+    return io_.SetI2cAddress(appAddress);
+  } else {
+    (void)appAddress;
+    return true;
+  }
 }
 
 /** @brief Execute DFU with default validation options. */
@@ -1082,6 +1124,8 @@ int BNO085<CommType>::DfuWithOptions(const HcBin_t& fw, const DfuOptions& option
   const char* meta = nullptr;
   bool fw_opened = false;
   bool hal_opened = false;
+  uint8_t app_address = 0;
+  bool address_switched = false;
   uint8_t dfu_buff[DFU_MAX_PACKET_LEN + 2];
   sh2_Hal_t* hal = halWrapper_.asHal();
 
@@ -1131,6 +1175,13 @@ int BNO085<CommType>::DfuWithOptions(const HcBin_t& fw, const DfuOptions& option
   if (packet_len == 0 || packet_len > DFU_MAX_PACKET_LEN)
     packet_len = DFU_MAX_PACKET_LEN;
 
+  if (io_.GetInterfaceType() == BNO085Interface::I2C) {
+    // Datasheet section 1.4: over I2C the bootloader answers at 0x28 / 0x29, not 0x4A / 0x4B.
+    status = dfuSelectBootloaderAddress(app_address, address_switched);
+    if (status != SH2_OK)
+      goto dfu_close;
+  }
+
   status = hal->open(hal);
   if (status != SH2_OK)
     goto dfu_close;
@@ -1176,6 +1227,8 @@ dfu_close:
   }
   if (hal_opened)
     hal->close(hal);
+  if (address_switched && !dfuRestoreAppAddress(app_address) && status == SH2_OK)
+    status = SH2_ERR_IO;
 
 dfu_end:
   state_ = BNO085DriverState::Closed;

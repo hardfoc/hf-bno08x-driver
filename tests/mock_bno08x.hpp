@@ -39,6 +39,7 @@ public:
 
   int Write(const uint8_t* data, uint32_t length) noexcept {
     written.insert(written.end(), data, data + length);
+    writeAddresses.push_back(i2cAddress);
     return static_cast<int>(length);
   }
 
@@ -73,6 +74,20 @@ public:
     return !fails;
   }
 
+  // ---- Optional I2C address hooks (used by DFU over I2C) ------------------
+  uint8_t GetI2cAddress() noexcept {
+    return i2cAddress;
+  }
+
+  bool SetI2cAddress(uint8_t address) noexcept {
+    addressLog.push_back(address);
+    if (!setAddressSucceeds) {
+      return false;
+    }
+    i2cAddress = address;
+    return true;
+  }
+
   // ---- Test controls ------------------------------------------------------
   void queue(const std::vector<uint8_t>& bytes) {
     rx.insert(rx.end(), bytes.begin(), bytes.end());
@@ -87,6 +102,10 @@ public:
   std::vector<uint8_t> written;
   std::vector<std::string> log;
   std::set<bno08x::CtrlPin> failPins; ///< GpioSet() reports an error for these pins
+  uint8_t i2cAddress = 0x4A;          ///< address the port talks to (SA0 low)
+  bool setAddressSucceeds = true;
+  std::vector<uint8_t> addressLog;     ///< every SetI2cAddress() argument, in order
+  std::vector<uint8_t> writeAddresses; ///< i2cAddress at each Write()
 
 private:
   BNO085Interface type_;

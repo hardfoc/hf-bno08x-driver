@@ -133,8 +133,8 @@ Typical consumption, measured by CEVA over SPI at VDDIO 3 V and VDD 3.3 V: 0.39 
 - **I2C clock stretching.** A BNO085 polled with no data holds SCL low until it has some. Gate reads on H_INTN, and
   give your I2C peripheral a clock-stretch timeout longer than your slowest report period.
 - **UART needs a crystal.** UART-SHTP and UART-RVC do not work reliably on the internal oscillator.
-- **Bootloader address.** In the bootloader the I2C address moves to `0x28` / `0x29`; a port used for firmware
-  updates over I2C must switch address (see [Firmware update](dfu.md)).
+- **Bootloader address.** In the bootloader the I2C address moves to `0x28` / `0x29`; the driver switches a port
+  that has the I2C address hooks there for the transfer (see [Firmware update](dfu.md)).
 
 ## Evaluation setup
 

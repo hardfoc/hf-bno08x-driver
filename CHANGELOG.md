@@ -26,6 +26,13 @@ The build settings carry version 1.0.0; no release has been tagged yet.
 - A program with more than one source file calling `DfuFromMemory()` / `RunDfuFromMemory()` failed to link with
   Apple clang (duplicate thread-local wrapper symbols for `MemoryFirmware`'s state). The adapter keeps its
   per-thread state in function-local statics now.
+- Firmware update over I2C never reached the bootloader: the driver kept talking to the application address
+  (`0x4A` / `0x4B`) while the bootloader answers at `0x28` / `0x29` (datasheet section 1.4). I2C ports can now
+  provide the optional `GetI2cAddress()` / `SetI2cAddress()` hooks; `Dfu()`, `DfuWithOptions()`,
+  `DfuFromMemory()` and `RunDfuFromMemory()` switch the port to `BootloaderI2cAddress()` of its address (same SA0
+  bit) for the transfer and restore it on every path. A failed switch returns `SH2_ERR_IO`; an address that is not
+  a BNO08x address returns `SH2_ERR_BAD_PARAM`. Ports without the hooks behave as before. The ESP32 I2C port
+  and the documented port implement them.
 
 ### Changed
 

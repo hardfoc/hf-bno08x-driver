@@ -579,6 +579,29 @@ public:
    */
   static constexpr uint32_t RESET_STARTUP_MS = 90 + 4;
 
+  /// @brief Application I2C address with SA0 low (datasheet figure 1-12); 0x4B with SA0 high.
+  static constexpr uint8_t I2C_ADDRESS_APP = 0x4A;
+  /// @brief Bootloader I2C address with SA0 low (datasheet section 1.4); 0x29 with SA0 high.
+  static constexpr uint8_t I2C_ADDRESS_BOOTLOADER = 0x28;
+
+  /**
+   * @brief Bootloader I2C address for a port configured at @p appAddress.
+   *
+   * The bootloader answers at 0x28 | SA0 instead of 0x4A | SA0 (datasheet
+   * 1000-3927 section 1.4 and figure 1-12), so SA0 is taken from bit 0 of
+   * the application address. A bootloader address maps to itself.
+   *
+   * @return 0x28 / 0x29, or 0 if @p appAddress is none of 0x4A, 0x4B, 0x28, 0x29.
+   */
+  static constexpr uint8_t BootloaderI2cAddress(uint8_t appAddress) noexcept {
+    const auto sa0 = static_cast<uint8_t>(appAddress & 0x01U);
+    const auto base = static_cast<uint8_t>(appAddress & 0xFEU);
+    if (base == I2C_ADDRESS_APP || base == I2C_ADDRESS_BOOTLOADER) {
+      return static_cast<uint8_t>(I2C_ADDRESS_BOOTLOADER | sa0);
+    }
+    return 0;
+  }
+
   /**
    * @brief Drive the BOOTN pin to enter/exit DFU bootloader mode.
    * @param[in] state  `true` = drive LOW (enter bootloader), `false` = HIGH.
@@ -610,6 +633,13 @@ public:
    * The sensor must already be in bootloader mode (hold BOOTN LOW during
    * reset). The method validates the firmware image, then transfers it
    * in packets with CRC-16 and ACK/NAK retry logic.
+   *
+   * Over I2C the bootloader answers at 0x28 / 0x29 (datasheet section 1.4).
+   * When the port has the optional `GetI2cAddress()` / `SetI2cAddress()`
+   * hooks, the driver switches it to BootloaderI2cAddress() of its current
+   * address for the transfer and restores the address afterwards, on every
+   * path (`SH2_ERR_IO` if a switch fails, `SH2_ERR_BAD_PARAM` if the current
+   * address is not a BNO08x address).
    *
    * @pre  Interface type must NOT be UARTRVC.
    * @param[in] fw  Firmware image. Defaults to the compiled-in stub from
@@ -785,10 +815,12 @@ private:
   static void dfuWrite32be(uint8_t* buf, uint32_t value) noexcept;           ///< @private
   static bool dfuIsKnownPartNumber(const char* part) noexcept;               ///< @private
   static void dfuAppendCrc(uint8_t* packet, uint8_t len) noexcept;           ///< @private
-  int dfuSend(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept;    ///< @private
+  int dfuSend(uint8_t* p_data, uint32_t len) noexcept;                       ///< @private
   int dfuSendAppSize(uint8_t* dfu_buff, uint32_t app_size) noexcept;         ///< @private
   int dfuSendPktSize(uint8_t* dfu_buff, uint8_t packet_len) noexcept;        ///< @private
   int dfuSendPkt(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept; ///< @private
+  int dfuSelectBootloaderAddress(uint8_t& appAddress, bool& switched) noexcept; ///< @private
+  bool dfuRestoreAppAddress(uint8_t appAddress) noexcept;                       ///< @private
 
   /// @}
 

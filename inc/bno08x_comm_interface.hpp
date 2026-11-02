@@ -112,6 +112,29 @@ inline bool GpioSet(Port& port, CtrlPin pin, GpioSignal signal) noexcept {
   }
 }
 
+/// @cond BNO08X_INTERNAL
+template <typename Port, typename = void>
+struct HasI2cAddressHooks : std::false_type {};
+
+template <typename Port>
+struct HasI2cAddressHooks<
+    Port, std::void_t<decltype(std::declval<Port&>().GetI2cAddress()),
+                      decltype(std::declval<Port&>().SetI2cAddress(std::declval<uint8_t>()))>>
+    : std::true_type {};
+/// @endcond
+
+/**
+ * @brief True when the port provides the optional I2C address hooks.
+ *
+ * `uint8_t GetI2cAddress()` returns the 7-bit address the port talks to and
+ * `bool SetI2cAddress(uint8_t)` changes it (also while the bus is open). The
+ * driver uses them to reach the bootloader at 0x28 / 0x29 during a firmware
+ * update over I2C (datasheet 1000-3927 section 1.4) and to restore the
+ * application address afterwards.
+ */
+template <typename Port>
+inline constexpr bool kHasI2cAddressHooks = HasI2cAddressHooks<Port>::value;
+
 } // namespace detail
 
 /**
@@ -125,6 +148,15 @@ inline bool GpioSet(Port& port, CtrlPin pin, GpioSignal signal) noexcept {
  *
  * @note  Implementations must provide **all** listed methods. The `GpioSet()`
  *        method may be a no-op for pins that are not wired on the board.
+ *
+ * Optional hooks, detected at compile time (the base class has no default for
+ * them, so a port without them keeps compiling):
+ * - `uint8_t GetI2cAddress()` and `bool SetI2cAddress(uint8_t addr7)`: I2C
+ *   ports should provide both. During a firmware update the driver switches
+ *   the port to the bootloader address (0x28 with SA0 low, 0x29 with SA0
+ *   high; datasheet section 1.4) and restores the application address
+ *   (0x4A / 0x4B, figure 1-12) afterwards. Without them the port itself must
+ *   talk to the bootloader address during DFU.
  */
 template <typename Derived>
 class CommInterface {

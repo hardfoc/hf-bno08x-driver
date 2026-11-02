@@ -26,7 +26,6 @@ uint32_t platform_micros() noexcept;
 // --8<-- [start:port]
 class MyI2c : public bno08x::CommInterface<MyI2c> {
 public:
-  static constexpr uint8_t kAddress = 0x4A; // SA0 low; 0x4B with SA0 high
   static constexpr int kIntnGpio = 17;      // H_INTN, active low
   static constexpr int kRstnGpio = 16;      // NRST, active low
   static constexpr int kBootnGpio = 18;     // BOOTN, active low (optional, for firmware updates)
@@ -50,7 +49,7 @@ public:
 
   // One SHTP transfer from the SH-2 library. Return the bytes accepted, or a negative value.
   int Write(const uint8_t* data, uint32_t length) noexcept {
-    return platform_i2c_write(kAddress, data, length) ? static_cast<int>(length) : -1;
+    return platform_i2c_write(address_, data, length) ? static_cast<int>(length) : -1;
   }
 
   // Return one complete SHTP transfer (header included), 0 when the hub has nothing to send.
@@ -59,7 +58,7 @@ public:
       return 0;
     }
     uint8_t header[4];
-    if (!platform_i2c_read(kAddress, header, sizeof(header))) {
+    if (!platform_i2c_read(address_, header, sizeof(header))) {
       return -1;
     }
     uint32_t transfer = (header[0] | (header[1] << 8)) & 0x7FFFU; // bit 15: continuation flag
@@ -70,7 +69,7 @@ public:
       transfer = length;
     }
     // A new read starts again at the header, so read the whole transfer.
-    return platform_i2c_read(kAddress, data, transfer) ? static_cast<int>(transfer) : -1;
+    return platform_i2c_read(address_, data, transfer) ? static_cast<int>(transfer) : -1;
   }
 
   // H_INTN low: the hub has a transfer waiting.
@@ -102,7 +101,18 @@ public:
     return true;
   }
 
+  // Optional, for firmware updates: the driver moves the port to the bootloader address (0x28 /
+  // 0x29) for the transfer and back to the application address afterwards.
+  uint8_t GetI2cAddress() noexcept {
+    return address_;
+  }
+  bool SetI2cAddress(uint8_t addr7) noexcept {
+    address_ = addr7;
+    return true;
+  }
+
 private:
   bool open_ = false;
+  uint8_t address_ = 0x4A; // SA0 low; 0x4B with SA0 high
 };
 // --8<-- [end:port]

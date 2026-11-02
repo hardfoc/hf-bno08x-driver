@@ -59,6 +59,9 @@ Rules the transfer must follow:
   whole length. A zero length is an empty transfer (BNO086 sends them when it has nothing): return 0.
 - **Gate on H_INTN.** Reading when the hub has nothing makes a BNO085 stretch the clock until it does.
 - **Return a negative value only for a bus failure.** The SH-2 library handles protocol errors.
+- **Address hooks for firmware updates.** `GetI2cAddress()` returns the 7-bit address the port talks to and
+  `SetI2cAddress(addr)` changes it, also while the bus is open. They are optional (detected at compile time); with
+  them the DFU calls reach the bootloader at `0x28` / `0x29` and restore your address afterwards.
 
 ## UART-RVC port
 

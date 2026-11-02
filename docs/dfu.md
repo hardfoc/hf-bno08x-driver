@@ -13,8 +13,10 @@ Replace the BNO08x's SH-2 firmware in the field through its bootloader, with an 
 - **I2C, SPI or UART.** The bootloader uses the interface the PS pins select; UART-RVC has no bootloader mode, so
   the DFU calls fail with `SH2_ERR_BAD_PARAM` on a `UARTRVC` port.
 - **A different I2C address.** Over I2C the bootloader answers at `0x28` (SA0 low) or `0x29` (SA0 high), not
-  `0x4A` / `0x4B`. The driver does not switch addresses: your port must talk to the bootloader address between
-  `EnterBootloader()` and `ExitBootloaderAndReboot()`.
+  `0x4A` / `0x4B` (datasheet section 1.4). Give your I2C port the optional `GetI2cAddress()` and
+  `SetI2cAddress()` hooks ([Porting](porting.md#i2c-port)): the DFU calls then switch it to
+  `BootloaderI2cAddress()` of its address (same SA0 bit) for the transfer and restore the address afterwards,
+  also when the transfer fails. A port without the hooks must talk to the bootloader address itself.
 - **A vendor image.** CEVA supplies BNO08x firmware as an HcBin image with metadata (`FW-Format`, `SW-Part-Number`).
   The image compiled in from `src/dfu/firmware-bno.c` is a 64-byte stub that the driver refuses.
 
@@ -58,12 +60,12 @@ Replace the BNO08x's SH-2 firmware in the field through its bootloader, with an 
 
 ## Step by step
 
-Call the pieces yourself when you need to do something between them, such as switching the I2C address:
+Call the pieces yourself when you need to do something between them:
 
 | Call | Does |
 | --- | --- |
 | `EnterBootloader(resetLowMs = 10, settleMs = 50)` | BOOTN + reset sequence above; `false` on a `UARTRVC` port or during a transfer |
-| `DfuFromMemory(image, options)` | Steps 2 to 4 from a `DfuMemoryImage` |
+| `DfuFromMemory(image, options)` | Steps 2 to 4 from a `DfuMemoryImage`, at the bootloader I2C address |
 | `DfuWithOptions(hcbin, options)` / `Dfu(hcbin)` | Steps 2 to 4 from any `HcBin_t`; `Dfu()` uses the default options |
 | `ExitBootloaderAndReboot(resetLowMs = 2, settleMs = 100)` | BOOTN released, reset, wait |
 
