@@ -28,9 +28,22 @@ class uses CRTP: the calls are resolved at compile time, so there are no virtual
 | `DataAvailable()` | your port, usually inside `Read()` | `true` when H_INTN is low; `true` always when there is no interrupt line |
 | `Delay(ms)` | reset and bootloader sequences | Block for at least `ms` milliseconds |
 | `GetTimeUs()` | SH-2 timestamps and timeouts, RVC timestamps | A monotonic 32-bit microsecond counter; wrapping is fine |
-| `GpioSet(pin, signal)` | `HardwareReset()`, `SetBootPin()`, `SetWakePin()`, `SelectInterface()` | Drive `RSTN`, `BOOTN`, `WAKE`, `PS0`, `PS1`; ignore pins the board does not wire |
+| `GpioSet(pin, signal)` | `HardwareReset()`, `SetBootPin()`, `SetWakePin()`, `SelectInterface()`, the bootloader helpers | Drive `RSTN`, `BOOTN`, `WAKE`, `PS0`, `PS1`; ignore pins the board does not wire. Return `true`, or `false` on a GPIO error |
 
 `GpioSetActive(pin)` and `GpioSetInactive(pin)` come with the base class.
+
+## GPIO errors
+
+Return `false` from `GpioSet()` when your SDK reports a GPIO failure; a pin the board does not wire is not a
+failure, so return `true` for it. The driver passes the status on: `HardwareReset()`, `SetBootPin()`,
+`SetWakePin()` and `SelectInterface()` return `false`, and `EnterBootloader()` / `ExitBootloaderAndReboot()` fail
+with `SH2_ERR_IO` and close the port again. `HardwareReset()` stops at the failing pin, so it does not wait out a
+reset that never happened.
+
+Return a `bool`, not your SDK's status code: the driver rejects any other return type at compile time, so an
+`esp_err_t` (where 0 is success) cannot be read as `true`. A port written for the earlier contract, with a `void`
+`GpioSet()`, still compiles; the driver treats it as never failing. `Close()` and `Delay()` stay `void`: the
+driver has nothing to recover when either goes wrong, so log it in the port.
 
 ## I2C port
 

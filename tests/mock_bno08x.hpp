@@ -3,8 +3,9 @@
  * @brief A scriptable BNO08x transport for the host unit tests.
  *
  * The mock records every control-pin change and delay in order, serves queued bytes to Read() one
- * call at a time, and reports a fixed interface type. Time is virtual: Delay() advances the clock
- * that GetTimeUs() returns, so tests can check the reset and bootloader sequences exactly.
+ * call at a time, and reports a fixed interface type. GpioSet() can be made to fail per pin. Time
+ * is virtual: Delay() advances the clock that GetTimeUs() returns, so tests can check the reset and
+ * bootloader sequences exactly.
  */
 #pragma once
 
@@ -12,6 +13,7 @@
 
 #include <cstdint>
 #include <deque>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -62,10 +64,13 @@ public:
     return nowUs += 10; // every call moves the clock, so polling loops terminate
   }
 
-  void GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
+  bool GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
     static const char* const names[] = {"RSTN", "BOOTN", "WAKE", "PS0", "PS1"};
+    const bool fails = failPins.count(pin) != 0;
     log.push_back(std::string(names[static_cast<int>(pin)]) +
-                  (signal == bno08x::GpioSignal::ACTIVE ? " active" : " inactive"));
+                  (signal == bno08x::GpioSignal::ACTIVE ? " active" : " inactive") +
+                  (fails ? " FAILED" : ""));
+    return !fails;
   }
 
   // ---- Test controls ------------------------------------------------------
@@ -81,6 +86,7 @@ public:
   std::deque<uint8_t> rx;
   std::vector<uint8_t> written;
   std::vector<std::string> log;
+  std::set<bno08x::CtrlPin> failPins; ///< GpioSet() reports an error for these pins
 
 private:
   BNO085Interface type_;

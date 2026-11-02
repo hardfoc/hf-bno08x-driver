@@ -286,14 +286,19 @@ public:
    *
    * @param pin   Which control pin to drive
    * @param signal ACTIVE to assert, INACTIVE to deassert
+   * @return false if ESP-IDF reported a GPIO error (an unwired pin is not an error)
    */
-  void GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
+  bool GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
     switch (pin) {
       case bno08x::CtrlPin::RSTN:
         if (config_.rst_pin != GPIO_NUM_NC) {
           // RSTN is active-low: ACTIVE → drive LOW (assert reset)
-          gpio_set_level(config_.rst_pin,
-                         signal == bno08x::GpioSignal::ACTIVE ? 0 : 1);
+          const esp_err_t ret =
+              gpio_set_level(config_.rst_pin, signal == bno08x::GpioSignal::ACTIVE ? 0 : 1);
+          if (ret != ESP_OK) {
+            ESP_LOGE(TAG_I2C, "RSTN write failed: %s", esp_err_to_name(ret));
+            return false;
+          }
         }
         break;
       case bno08x::CtrlPin::BOOTN:
@@ -302,6 +307,7 @@ public:
       case bno08x::CtrlPin::PS1:
         break; // Not wired in this I2C implementation
     }
+    return true;
   }
 
   // ── Lifecycle management ───────────────────────────────────────────────

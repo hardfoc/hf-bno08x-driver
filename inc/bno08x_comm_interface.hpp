@@ -5,6 +5,8 @@
  * @copyright Copyright (c) 2024-2025 HardFOC. All rights reserved.
  */
 #include <cstdint>
+#include <type_traits>
+#include <utility>
 
 // ============================================================================
 // Interface Type Enum
@@ -76,6 +78,42 @@ enum class GpioSignal : uint8_t {
   ACTIVE   = 1  ///< Pin function is asserted
 };
 
+namespace detail {
+
+/** @brief Return type of `Port::GpioSet(CtrlPin, GpioSignal)`. */
+template <typename Port>
+using GpioSetResult =
+    decltype(std::declval<Port&>().GpioSet(std::declval<CtrlPin>(), std::declval<GpioSignal>()));
+
+/** @brief True when the port's GpioSet() reports a status (returns bool). */
+template <typename Port>
+inline constexpr bool kGpioSetReportsStatus =
+    std::is_same_v<std::remove_cv_t<std::remove_reference_t<GpioSetResult<Port>>>, bool>;
+
+/**
+ * @brief Call the port's GpioSet() and return its status.
+ *
+ * A `bool` result is returned as-is; a `void` GpioSet() (the earlier
+ * contract) is treated as always successful. Any other return type is
+ * rejected at compile time so that an SDK status code (for example an
+ * `esp_err_t`, where 0 means success) cannot be read as a bool.
+ */
+template <typename Port>
+inline bool GpioSet(Port& port, CtrlPin pin, GpioSignal signal) noexcept {
+  using Result = GpioSetResult<Port>;
+  static_assert(std::is_void_v<Result> || kGpioSetReportsStatus<Port>,
+                "bno08x: the port's GpioSet(pin, signal) must return bool (true = pin driven, "
+                "false = GPIO error), or void for a port that never reports errors");
+  if constexpr (std::is_void_v<Result>) {
+    port.GpioSet(pin, signal);
+    return true;
+  } else {
+    return static_cast<bool>(port.GpioSet(pin, signal));
+  }
+}
+
+} // namespace detail
+
 /**
  * @brief CRTP base class for BNO08x communication interfaces.
  *
@@ -131,6 +169,9 @@ public:
    *
    * Called during driver shutdown. Implementations should de-initialise the
    * peripheral and release any allocated resources.
+   *
+   * Returns `void` on purpose: the vendor `sh2_Hal_t::close` hook is `void`,
+   * and the driver has nothing to recover on teardown. Log failures in the port.
    */
   void Close() noexcept {
     static_cast<Derived*>(this)->Close();
@@ -181,7 +222,8 @@ public:
   /**
    * @brief Block for a specified duration.
    *
-   * Used by the driver for reset timing and post-DFU delays.
+   * Used by the driver for reset timing and post-DFU delays. Returns `void`:
+   * a delay has no failure the driver could act on.
    *
    * @param[in] ms  Delay duration in milliseconds.
    */
@@ -218,11 +260,17 @@ public:
    * The bus implementation is responsible for mapping ACTIVE/INACTIVE to
    * the correct physical level based on the pin's active-level design.
    *
+   * The port's GpioSet() returns `bool`: `true` when the pin was driven (or
+   * is not wired, so there is nothing to drive), `false` on a GPIO error.
+   * A port written for the earlier contract, with a `void` GpioSet(), still
+   * compiles and is treated as never failing (see detail::GpioSet()).
+   *
    * @param[in] pin     Which control pin to drive.
    * @param[in] signal  ACTIVE to assert the pin function, INACTIVE to deassert.
+   * @return  `true` on success, `false` if the port reported a GPIO error.
    */
-  void GpioSet(CtrlPin pin, GpioSignal signal) noexcept {
-    static_cast<Derived*>(this)->GpioSet(pin, signal);
+  bool GpioSet(CtrlPin pin, GpioSignal signal) noexcept {
+    return detail::GpioSet(*static_cast<Derived*>(this), pin, signal);
   }
 
   /**
@@ -231,9 +279,10 @@ public:
    * Convenience wrapper for `GpioSet(pin, GpioSignal::ACTIVE)`.
    *
    * @param[in] pin  Which control pin to assert.
+   * @return  `true` on success, `false` if the port reported a GPIO error.
    */
-  void GpioSetActive(CtrlPin pin) noexcept {
-    GpioSet(pin, GpioSignal::ACTIVE);
+  bool GpioSetActive(CtrlPin pin) noexcept {
+    return GpioSet(pin, GpioSignal::ACTIVE);
   }
 
   /**
@@ -242,9 +291,10 @@ public:
    * Convenience wrapper for `GpioSet(pin, GpioSignal::INACTIVE)`.
    *
    * @param[in] pin  Which control pin to deassert.
+   * @return  `true` on success, `false` if the port reported a GPIO error.
    */
-  void GpioSetInactive(CtrlPin pin) noexcept {
-    GpioSet(pin, GpioSignal::INACTIVE);
+  bool GpioSetInactive(CtrlPin pin) noexcept {
+    return GpioSet(pin, GpioSignal::INACTIVE);
   }
 
   /// @}

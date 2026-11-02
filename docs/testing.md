@@ -20,7 +20,8 @@ ctest --test-dir build-host --output-on-failure
 | --- | --- |
 | [`tests/test_rvc.cpp`](../tests/test_rvc.cpp) | UART-RVC parsing: the datasheet's example frame, resynchronisation, checksum rejection, open and close |
 | [`tests/test_driver.cpp`](../tests/test_driver.cpp) | Interface and state guards, error codes, `HardwareReset()` and `EnterBootloader()` pin sequences, DFU image checks |
-| [`tests/mock_bno08x.hpp`](../tests/mock_bno08x.hpp) | The mock transport |
+| [`tests/test_gpio_status.cpp`](../tests/test_gpio_status.cpp) | GPIO errors from `GpioSet()` reaching the pin calls and the bootloader helpers; a legacy `void GpioSet()` port |
+| [`tests/mock_bno08x.hpp`](../tests/mock_bno08x.hpp) | The mock transport; `GpioSet()` can fail per pin |
 
 The tests do not model the SH-2 protocol, so a successful `Begin()` and report decoding are covered on hardware
 only.

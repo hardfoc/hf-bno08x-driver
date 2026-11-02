@@ -18,7 +18,7 @@ bool platform_i2c_open(uint32_t clock_hz) noexcept;
 void platform_i2c_close() noexcept;
 bool platform_i2c_write(uint8_t addr7, const uint8_t* data, uint32_t len) noexcept; // START .. STOP
 bool platform_i2c_read(uint8_t addr7, uint8_t* data, uint32_t len) noexcept;        // START .. STOP
-void platform_gpio_write(int gpio, bool level) noexcept;
+bool platform_gpio_write(int gpio, bool level) noexcept; // false on a GPIO error
 bool platform_gpio_read(int gpio) noexcept;
 void platform_delay_ms(uint32_t ms) noexcept;
 uint32_t platform_micros() noexcept;
@@ -86,20 +86,20 @@ public:
   }
 
   // ACTIVE means "function asserted": low on NRST and BOOTN. PS0/PS1 are strapped to GND for I2C.
-  void GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
+  // Return false on a GPIO error; a pin the board does not wire is not an error.
+  bool GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
     const bool active = signal == bno08x::GpioSignal::ACTIVE;
     switch (pin) {
     case bno08x::CtrlPin::RSTN:
-      platform_gpio_write(kRstnGpio, !active);
-      break;
+      return platform_gpio_write(kRstnGpio, !active);
     case bno08x::CtrlPin::BOOTN:
-      platform_gpio_write(kBootnGpio, !active);
-      break;
+      return platform_gpio_write(kBootnGpio, !active);
     case bno08x::CtrlPin::WAKE:
     case bno08x::CtrlPin::PS0:
     case bno08x::CtrlPin::PS1:
       break; // not wired on this board
     }
+    return true;
   }
 
 private:

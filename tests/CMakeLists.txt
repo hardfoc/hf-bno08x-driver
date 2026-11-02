@@ -14,6 +14,7 @@ add_executable(hf_bno08x_host_tests
   test_main.cpp
   test_rvc.cpp
   test_driver.cpp
+  test_gpio_status.cpp
 )
 
 target_link_libraries(hf_bno08x_host_tests PRIVATE ${HF_BNO08X_TARGET_NAME})

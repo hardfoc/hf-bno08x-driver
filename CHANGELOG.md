@@ -26,6 +26,15 @@ The build settings carry version 1.0.0; no release has been tagged yet.
 
 ### Changed
 
+- The port's `GpioSet()` now returns `bool` (`true` = pin driven or not wired, `false` = GPIO error), and the
+  driver passes it on: `HardwareReset()`, `SetBootPin()`, `SetWakePin()` and `SelectInterface()` return `bool`
+  instead of `void`, and `EnterBootloader()` / `ExitBootloaderAndReboot()` fail with `SH2_ERR_IO` and close the
+  port. `HardwareReset()` stops at a failed RSTN write instead of waiting. Ports with a `void` `GpioSet()` still
+  compile (detected at compile time) and are treated as never failing; any other return type is a compile error,
+  so an SDK status code is not read as a bool. Calls that ignore the result compile as before; code that takes
+  the address of one of the four member functions needs the new type. The ESP32 example ports return `false` on
+  an ESP-IDF error.
+
 - Documentation moved to the HardFOC MkDocs platform: new page set (quickstart, hardware, architecture, API
   guide, porting, UART-RVC mode, firmware update, testing), code snippets compiled by the host build from
   `tests/docs/`, Doxygen under `/api/`, versioned with mike. The Jekyll site files and the doxygen-awesome

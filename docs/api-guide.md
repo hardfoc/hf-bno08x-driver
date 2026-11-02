@@ -104,4 +104,5 @@ The destructor closes an open SH-2 or RVC session too. Close the session before 
 `HardwareReset(lowMs)` holds NRST active for `lowMs` (default 2 ms) and then waits `RESET_STARTUP_MS` (94 ms, the
 start-up time of datasheet figure 6-8). `SetBootPin(true)`
 asserts BOOTN (low) for the bootloader; `SetWakePin(true)` asserts WAKE in SPI mode. Each forwards to your port's
-`GpioSet()`, so a pin the board does not wire is a no-op. [Hardware](hardware.md#control-pins) has the levels.
+`GpioSet()`, so a pin the board does not wire is a no-op. All four return `false` when the port's `GpioSet()`
+reports a GPIO error ([Porting](porting.md#gpio-errors)). [Hardware](hardware.md#control-pins) has the levels.

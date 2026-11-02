@@ -567,8 +567,9 @@ public:
    *
    * @param[in] lowMs  Duration to hold RSTN LOW (default 2 ms; the datasheet
    *                   minimum t_nrst is 10 ns).
+   * @return  `false` if the port's GpioSet() reported an error on RSTN.
    */
-  void HardwareReset(uint32_t lowMs = 2) noexcept;
+  bool HardwareReset(uint32_t lowMs = 2) noexcept;
 
   /**
    * @brief Wait after releasing NRST before the hub can be addressed, in ms.
@@ -581,14 +582,16 @@ public:
   /**
    * @brief Drive the BOOTN pin to enter/exit DFU bootloader mode.
    * @param[in] state  `true` = drive LOW (enter bootloader), `false` = HIGH.
+   * @return  `false` if the port's GpioSet() reported an error.
    */
-  void SetBootPin(bool state) noexcept;
+  bool SetBootPin(bool state) noexcept;
 
   /**
    * @brief Drive the WAKE pin (SPI mode only).
    * @param[in] state  `true` = drive LOW (wake sensor), `false` = release.
+   * @return  `false` if the port's GpioSet() reported an error.
    */
-  void SetWakePin(bool state) noexcept;
+  bool SetWakePin(bool state) noexcept;
 
   /**
    * @brief Select the host interface by driving PS0/PS1 pins.
@@ -597,8 +600,9 @@ public:
    * (rare -- most boards hard-wire them).
    *
    * @param[in] iface  Desired interface.
+   * @return  `false` if the port's GpioSet() reported an error on PS0 or PS1.
    */
-  void SelectInterface(BNO085Interface iface) noexcept;
+  bool SelectInterface(BNO085Interface iface) noexcept;
 
   /**
    * @brief Perform a Device Firmware Update (DFU).
@@ -644,7 +648,10 @@ public:
    * Holds BOOTN low, pulses reset, then releases BOOTN. Requires a transport
    * with BOOTN/RSTN wiring support.
    *
-   * @return true on success, false if interface/state is incompatible.
+   * @return true on success, false if interface/state is incompatible
+   *         (`SH2_ERR_BAD_PARAM` / `SH2_ERR_OP_IN_PROGRESS`), the port did not
+   *         open (`SH2_ERR`) or a control pin could not be driven
+   *         (`SH2_ERR_IO`; the port is closed again).
    */
   bool EnterBootloader(uint32_t resetLowMs = 10, uint32_t settleMs = 50) noexcept;
 
@@ -652,6 +659,7 @@ public:
    * @brief Exit bootloader mode and reboot into application firmware.
    *
    * Ensures BOOTN is released high, pulses reset, then waits for boot.
+   * Fails like EnterBootloader(), including `SH2_ERR_IO` on a GPIO error.
    */
   bool ExitBootloaderAndReboot(uint32_t resetLowMs = 2, uint32_t settleMs = 100) noexcept;
 
@@ -692,6 +700,9 @@ public:
 private:
   /** @brief Initialize HAL wrapper function pointers and comm binding. */
   void prepareHalWrapper() noexcept;
+
+  /** @brief Drive a control pin; false if the port reported a GPIO error. */
+  bool setPin(bno08x::CtrlPin pin, bool active) noexcept;
 
   /** @brief Convert a cached SH-2 value to the high-level SensorEvent type. */
   SensorEvent toSensorEvent(BNO085Sensor sensor, const sh2_SensorValue_t& val) const noexcept;

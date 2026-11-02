@@ -177,24 +177,27 @@ public:
    *
    * @param pin   Which control pin to drive
    * @param signal ACTIVE to assert, INACTIVE to deassert
+   * @return false if ESP-IDF reported a GPIO error (an unwired pin is not an error)
    */
-  void GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
+  bool GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
+    gpio_num_t gpio = GPIO_NUM_NC;
     switch (pin) {
       case bno08x::CtrlPin::RSTN:
-        if (config_.rst_pin != GPIO_NUM_NC)
-          gpio_set_level(config_.rst_pin,
-                         signal == bno08x::GpioSignal::ACTIVE ? 0 : 1);
+        gpio = config_.rst_pin;
         break;
       case bno08x::CtrlPin::BOOTN:
-        if (config_.boot_pin != GPIO_NUM_NC)
-          gpio_set_level(config_.boot_pin,
-                         signal == bno08x::GpioSignal::ACTIVE ? 0 : 1);
+        gpio = config_.boot_pin;
         break;
       case bno08x::CtrlPin::WAKE:
       case bno08x::CtrlPin::PS0:
       case bno08x::CtrlPin::PS1:
         break; // Not wired in this implementation
     }
+    if (gpio == GPIO_NUM_NC) {
+      return true;
+    }
+    // RSTN and BOOTN are active-low: ACTIVE drives the pin low.
+    return gpio_set_level(gpio, signal == bno08x::GpioSignal::ACTIVE ? 0 : 1) == ESP_OK;
   }
 
 private:

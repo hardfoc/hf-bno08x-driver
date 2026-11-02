@@ -576,28 +576,46 @@ bool BNO085<CommType>::configure(BNO085Sensor sensor, uint32_t interval_us, floa
 // ============================================================================
 
 /**
+ * @brief Drive one control pin through the port and return its status.
+ *
+ * Goes through bno08x::detail::GpioSet() so a port whose GpioSet() returns
+ * `void` (the earlier contract) still compiles and counts as success.
+ */
+template <typename CommType>
+bool BNO085<CommType>::setPin(bno08x::CtrlPin pin, bool active) noexcept {
+  return bno08x::detail::GpioSet(io_, pin,
+                                 active ? bno08x::GpioSignal::ACTIVE : bno08x::GpioSignal::INACTIVE);
+}
+
+/**
  * @brief Assert RSTN for @p lowMs, then release and wait for boot.
  *
  * After NRST rises the hub needs t1 (internal initialization, min 90 ms)
  * plus t2 (internal configuration, typ 4 ms) before it asserts H_INTN and
  * can be addressed (datasheet 1000-3927 section 6.5.3, figures 6-8 and 6-9).
  * The driver waits RESET_STARTUP_MS = t1 + t2.
+ *
+ * If asserting RSTN fails nothing else is done. If releasing it fails the
+ * hub may still be held in reset, so the start-up wait is skipped.
  */
 template <typename CommType>
-void BNO085<CommType>::HardwareReset(uint32_t lowMs) noexcept {
+bool BNO085<CommType>::HardwareReset(uint32_t lowMs) noexcept {
   using bno08x::CtrlPin;
-  io_.GpioSetActive(CtrlPin::RSTN);   // Assert reset
+  if (!setPin(CtrlPin::RSTN, true)) { // Assert reset
+    return false;
+  }
   io_.Delay(lowMs);
-  io_.GpioSetInactive(CtrlPin::RSTN); // Release reset
-  io_.Delay(RESET_STARTUP_MS);        // t1 + t2 (datasheet 6.5.3)
+  if (!setPin(CtrlPin::RSTN, false)) { // Release reset
+    return false;
+  }
+  io_.Delay(RESET_STARTUP_MS); // t1 + t2 (datasheet 6.5.3)
+  return true;
 }
 
 /** @brief Forward BOOTN control to the CommInterface. */
 template <typename CommType>
-void BNO085<CommType>::SetBootPin(bool state) noexcept {
-  using bno08x::CtrlPin;
-  using bno08x::GpioSignal;
-  io_.GpioSet(CtrlPin::BOOTN, state ? GpioSignal::ACTIVE : GpioSignal::INACTIVE);
+bool BNO085<CommType>::SetBootPin(bool state) noexcept {
+  return setPin(bno08x::CtrlPin::BOOTN, state);
 }
 
 /** @brief Enter bootloader mode via BOOTN+reset sequence. */
@@ -623,9 +641,14 @@ bool BNO085<CommType>::EnterBootloader(uint32_t resetLowMs, uint32_t settleMs) n
     last_error_ = SH2_ERR;
     return false;
   }
-  io_.GpioSetActive(bno08x::CtrlPin::BOOTN);   // Assert BOOTN (enter bootloader)
-  HardwareReset(resetLowMs);
-  io_.GpioSetInactive(bno08x::CtrlPin::BOOTN); // Release BOOTN after reset
+  // Assert BOOTN, reset, then release BOOTN (BOOTN is sampled at reset, datasheet section 1.4).
+  const bool ok = setPin(bno08x::CtrlPin::BOOTN, true) && HardwareReset(resetLowMs);
+  const bool released = setPin(bno08x::CtrlPin::BOOTN, false);
+  if (!ok || !released) {
+    io_.Close();
+    last_error_ = SH2_ERR_IO;
+    return false;
+  }
   if (settleMs) {
     io_.Delay(settleMs);
   }
@@ -656,8 +679,12 @@ bool BNO085<CommType>::ExitBootloaderAndReboot(uint32_t resetLowMs, uint32_t set
     last_error_ = SH2_ERR;
     return false;
   }
-  io_.GpioSetInactive(bno08x::CtrlPin::BOOTN); // Ensure normal application boot path
-  HardwareReset(resetLowMs);
+  // BOOTN high at reset boots the application (datasheet section 1.4).
+  if (!setPin(bno08x::CtrlPin::BOOTN, false) || !HardwareReset(resetLowMs)) {
+    io_.Close();
+    last_error_ = SH2_ERR_IO;
+    return false;
+  }
   if (settleMs) {
     io_.Delay(settleMs);
   }
@@ -667,10 +694,8 @@ bool BNO085<CommType>::ExitBootloaderAndReboot(uint32_t resetLowMs, uint32_t set
 
 /** @brief Forward WAKE control to the CommInterface (SPI only). */
 template <typename CommType>
-void BNO085<CommType>::SetWakePin(bool state) noexcept {
-  using bno08x::CtrlPin;
-  using bno08x::GpioSignal;
-  io_.GpioSet(CtrlPin::WAKE, state ? GpioSignal::ACTIVE : GpioSignal::INACTIVE);
+bool BNO085<CommType>::SetWakePin(bool state) noexcept {
+  return setPin(bno08x::CtrlPin::WAKE, state);
 }
 
 /**
@@ -679,30 +704,19 @@ void BNO085<CommType>::SetWakePin(bool state) noexcept {
  * PS pins are sampled at reset. This is only useful if the pins are
  * connected to controllable GPIOs. Levels follow datasheet 1000-3927
  * figure 1-5 (Protocol selection): PS1/PS0 = 00 I2C, 01 UART-RVC,
- * 10 UART (SHTP), 11 SPI.
+ * 10 UART (SHTP), 11 SPI. Both pins are always driven; the result is
+ * `false` if either failed.
  */
 template <typename CommType>
-void BNO085<CommType>::SelectInterface(BNO085Interface iface) noexcept {
+bool BNO085<CommType>::SelectInterface(BNO085Interface iface) noexcept {
   using bno08x::CtrlPin;
-  using bno08x::GpioSignal;
-  switch (iface) {
-  case BNO085Interface::I2C:
-    io_.GpioSetInactive(CtrlPin::PS1);
-    io_.GpioSetInactive(CtrlPin::PS0);
-    break;
-  case BNO085Interface::UARTRVC:
-    io_.GpioSetInactive(CtrlPin::PS1);
-    io_.GpioSetActive(CtrlPin::PS0);
-    break;
-  case BNO085Interface::UART:
-    io_.GpioSetActive(CtrlPin::PS1);
-    io_.GpioSetInactive(CtrlPin::PS0);
-    break;
-  case BNO085Interface::SPI:
-    io_.GpioSetActive(CtrlPin::PS1);
-    io_.GpioSetActive(CtrlPin::PS0);
-    break;
+  const auto bits = static_cast<uint8_t>(iface); // the enum value is the PS1:PS0 pair
+  if (bits > 3) {
+    return false;
   }
+  const bool ps1 = setPin(CtrlPin::PS1, (bits & 0x2U) != 0);
+  const bool ps0 = setPin(CtrlPin::PS0, (bits & 0x1U) != 0);
+  return ps1 && ps0;
 }
 
 // ============================================================================
