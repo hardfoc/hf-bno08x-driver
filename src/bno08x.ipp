@@ -49,6 +49,12 @@ bool BNO085<CommType>::Begin() noexcept {
     return false;
   }
 
+  // The SH-2 library has one global session; a second sh2_open() would reset the first.
+  if (!acquireSh2Session()) {
+    last_error_ = BNO08X_ERR_SH2_SESSION_IN_USE;
+    return false;
+  }
+
   last_error_ = 0;
   prepareHalWrapper();
 
@@ -56,6 +62,7 @@ bool BNO085<CommType>::Begin() noexcept {
   if (status != SH2_OK) {
     last_error_ = status;
     io_.Close();
+    releaseSh2Session();
     return false;
   }
   status = sh2_reinitialize();
@@ -63,6 +70,7 @@ bool BNO085<CommType>::Begin() noexcept {
     last_error_ = status;
     sh2_close();
     io_.Close();
+    releaseSh2Session();
     return false;
   }
   status = sh2_setSensorCallback(sensorCallback, this);
@@ -70,6 +78,7 @@ bool BNO085<CommType>::Begin() noexcept {
     last_error_ = status;
     sh2_close();
     io_.Close();
+    releaseSh2Session();
     return false;
   }
 
@@ -447,10 +456,26 @@ void BNO085<CommType>::Close() noexcept {
     return;
   sh2_close();
   io_.Close();
+  releaseSh2Session();
   state_ = BNO085DriverState::Closed;
   new_flag_.fill(false);
   last_interval_.fill(0);
   last_sensitivity_.fill(0.0f);
+}
+
+/** @brief Claim the process-wide SH-2 session; false if another object holds it. */
+template <typename CommType>
+bool BNO085<CommType>::acquireSh2Session() noexcept {
+  const void* expected = nullptr;
+  return bno08x::detail::Sh2SessionOwner().compare_exchange_strong(expected, this) ||
+         expected == this;
+}
+
+/** @brief Release the SH-2 session if this object holds it. */
+template <typename CommType>
+void BNO085<CommType>::releaseSh2Session() noexcept {
+  const void* expected = this;
+  bno08x::detail::Sh2SessionOwner().compare_exchange_strong(expected, nullptr);
 }
 
 // ---- SH-2 HAL callback bridges (CRTP CommInterface -> C sh2_Hal_t) ---------

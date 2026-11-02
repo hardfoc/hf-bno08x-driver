@@ -15,6 +15,7 @@ out) and from a usage problem (the call is refused for the interface or state).
 | H_INTN never goes low after reset | Not powered, held in reset, or in the bootloader | VDD before or with VDDIO; NRST high; BOOTN pulled up; CAP has its 100 nF |
 | `Begin()` is `false` with `SH2_ERR_BAD_PARAM` (-2) | The port reports `UARTRVC` | Use `BeginRvc()`, or report `I2C` / `SPI` / `UART` |
 | `Begin()` is `false` with `SH2_ERR_OP_IN_PROGRESS` (-3) | An RVC session or firmware update is active | `Close()` first; check `GetState()` |
+| `Begin()` is `false` with `BNO08X_ERR_SH2_SESSION_IN_USE` (-100) | Another `BNO085` object already runs SH-2; the CEVA library has one session per program | Use one SH-2 object, or `Close()` the other one first |
 | Works after power-up, fails after an MCU reset | The hub kept running and its state no longer matches | Call `HardwareReset()` before `Begin()` |
 
 ## Reports are missing or wrong

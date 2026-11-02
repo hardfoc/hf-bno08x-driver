@@ -94,6 +94,7 @@ The destructor closes an open SH-2 or RVC session too. Close the session before 
 | `SH2_ERR_TIMEOUT` | The hub did not answer a command in time | H_INTN wiring, `Read()` contract, PS0/PS1 straps |
 | `SH2_ERR_BAD_PARAM` | Wrong interface for the call (SH-2 call on UART-RVC, or the reverse), or a bad DFU image | `GetInterfaceType()` |
 | `SH2_ERR_OP_IN_PROGRESS` | Wrong state: reports before `Begin()`, a call during a firmware update | `GetState()` |
+| `BNO08X_ERR_SH2_SESSION_IN_USE` (-100) | `Begin()` refused: another `BNO085` object holds the one SH-2 session of the process | `Close()` the other object first ([Architecture](architecture.md)) |
 | `accuracy` 0 or 1 | Calibration not settled yet | Move the device; keep it away from magnetic fields |
 | Reports stop, then resume | The hub reset; the driver re-enabled your reports | Supply, NRST, ESD |
 

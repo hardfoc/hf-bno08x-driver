@@ -124,5 +124,6 @@ for UART-RVC. Start from them for an ESP-IDF target. The I2C reference reads the
 
 ## Threads
 
-The driver is not thread-safe, and the CEVA SH-2 library keeps one global session. Give the sensor one owner task
-that calls `Update()`, or guard every call on the driver object (and its port) with one mutex.
+The driver is not thread-safe, and the CEVA SH-2 library keeps one global session: a second object's `Begin()`
+fails with `BNO08X_ERR_SH2_SESSION_IN_USE` while one is open. Give the sensor one owner task that calls
+`Update()`, or guard every call on the driver object (and its port) with one mutex.

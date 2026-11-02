@@ -78,8 +78,13 @@ A call for the wrong interface fails with `SH2_ERR_BAD_PARAM`; a call in the wro
   CEVA's own code, kept as a submodule. The core adds the C++ types, the report cache and the reset handling.
 - **A latest-value cache.** Each of the 47 possible sensor IDs keeps its last decoded value and a new-data flag,
   so callbacks and polling work together.
-- **One SH-2 session per program.** The CEVA library keeps its state in a single global instance, so one
-  `BNO085` object can run SH-2 at a time. UART-RVC objects do not use the library and have no such limit.
+- **One SH-2 session per program.** The CEVA library keeps its state in a single global instance (`_sh2` in
+  `sh2.c`, one SHTP instance in `shtp.c`) and its API takes no handle, so one `BNO085` object can run SH-2 at a
+  time. The driver enforces it: while one object's session is open, `Begin()` on any other object returns
+  `false` with `BNO08X_ERR_SH2_SESSION_IN_USE` before it touches the library, so the open session is never
+  reset behind its owner's back. `Close()` (or the owner's destructor) frees it; `Sh2SessionInUse()` tells
+  whether it is taken. Making the driver multi-instance would mean changing CEVA's library, which this repository
+  keeps unmodified. UART-RVC and firmware updates do not use the library and have no such limit.
 - **Not thread-safe.** Call one driver object from one task, or guard it with a mutex.
 
 ## Source map

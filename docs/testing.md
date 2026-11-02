@@ -21,12 +21,13 @@ ctest --test-dir build-host --output-on-failure
 | [`tests/test_rvc.cpp`](../tests/test_rvc.cpp) | UART-RVC parsing: the datasheet's example frame, resynchronisation, checksum rejection, open and close |
 | [`tests/test_driver.cpp`](../tests/test_driver.cpp) | Interface and state guards, error codes, `HardwareReset()` and `EnterBootloader()` pin sequences, DFU image checks |
 | [`tests/test_dfu_i2c.cpp`](../tests/test_dfu_i2c.cpp) | DFU over I2C at the bootloader address for both SA0 levels, restore on success and failure, address errors |
+| [`tests/test_sh2_session.cpp`](../tests/test_sh2_session.cpp) | `Begin()` against the mock's SH-2 Initialize responder; a second object refused while one holds the SH-2 session, across port types; release on `Close()`, destruction and failure |
 | [`tests/test_memory_firmware.cpp`](../tests/test_memory_firmware.cpp) | In-memory DFU image checks from a second source file (the `MemoryFirmware` adapter links from more than one) |
 | [`tests/test_gpio_status.cpp`](../tests/test_gpio_status.cpp) | GPIO errors from `GpioSet()` reaching the pin calls and the bootloader helpers; a legacy `void GpioSet()` port |
 | [`tests/mock_bno08x.hpp`](../tests/mock_bno08x.hpp) | The mock transport; `GpioSet()` can fail per pin |
 
-The tests do not model the SH-2 protocol, so a successful `Begin()` and report decoding are covered on hardware
-only.
+The mock answers only the SH-2 Initialize command, which is enough for `Begin()` to succeed; report decoding is
+covered on hardware only.
 
 ## Documentation snippets
 

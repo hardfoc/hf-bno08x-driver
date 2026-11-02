@@ -17,6 +17,7 @@ add_executable(hf_bno08x_host_tests
   test_gpio_status.cpp
   test_memory_firmware.cpp
   test_dfu_i2c.cpp
+  test_sh2_session.cpp
 )
 
 target_link_libraries(hf_bno08x_host_tests PRIVATE ${HF_BNO08X_TARGET_NAME})

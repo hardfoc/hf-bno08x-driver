@@ -33,6 +33,11 @@ The build settings carry version 1.0.0; no release has been tagged yet.
   bit) for the transfer and restore it on every path. A failed switch returns `SH2_ERR_IO`; an address that is not
   a BNO08x address returns `SH2_ERR_BAD_PARAM`. Ports without the hooks behave as before. The ESP32 I2C port
   and the documented port implement them.
+- A second `BNO085` object's `Begin()` silently reset the SH-2 session of the first: CEVA's SH-2 library keeps one
+  global session, and `sh2_open()` clears it before it fails. `Begin()` now refuses while another object's session
+  is open, with the new error `BNO08X_ERR_SH2_SESSION_IN_USE` (-100), and touches neither the library nor the bus;
+  `Close()` and the destructor free the session, and `Sh2SessionInUse()` reports it. UART-RVC and DFU are not
+  affected.
 
 ### Changed
 

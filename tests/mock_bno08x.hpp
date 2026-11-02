@@ -40,6 +40,9 @@ public:
   int Write(const uint8_t* data, uint32_t length) noexcept {
     written.insert(written.end(), data, data + length);
     writeAddresses.push_back(i2cAddress);
+    if (answerInitialize) {
+      answerInitializeCommand(data, length);
+    }
     return static_cast<int>(length);
   }
 
@@ -88,6 +91,23 @@ public:
     return true;
   }
 
+  // ---- Minimal SH-2 responder --------------------------------------------
+  // SHTP transfer: 4-byte header (length LE with bit 15 = continuation, channel, sequence), then
+  // the cargo. Channel 2 carries SH-2 control reports; 0xF2 is a Command Request whose command
+  // 0x04 is Initialize, answered by a 0xF1 Command Response with status 0 (SH-2 Reference
+  // Manual 1000-3625, Command Request / Command Response reports; the layout matches
+  // CommandReq_t / CommandResp_t in src/sh2/sh2.c). That is all Begin() needs to succeed.
+  void answerInitializeCommand(const uint8_t* data, uint32_t length) {
+    if (length < 4 + 3 || data[2] != 2 || data[4] != 0xF2 || data[6] != 0x04) {
+      return;
+    }
+    const uint8_t cmdSeq = data[5];
+    std::vector<uint8_t> resp = {0, 0, 2, controlSeq++, 0xF1, 0, 0x04, cmdSeq, 0};
+    resp.resize(4 + 16, 0); // reportId, seq, command, commandSeq, respSeq, r[11]
+    resp[0] = static_cast<uint8_t>(resp.size());
+    queue(resp);
+  }
+
   // ---- Test controls ------------------------------------------------------
   void queue(const std::vector<uint8_t>& bytes) {
     rx.insert(rx.end(), bytes.begin(), bytes.end());
@@ -102,6 +122,8 @@ public:
   std::vector<uint8_t> written;
   std::vector<std::string> log;
   std::set<bno08x::CtrlPin> failPins; ///< GpioSet() reports an error for these pins
+  bool answerInitialize = false;      ///< answer the SH-2 Initialize command so Begin() succeeds
+  uint8_t controlSeq = 0;             ///< SHTP sequence number of the hub's control channel
   uint8_t i2cAddress = 0x4A;          ///< address the port talks to (SA0 low)
   bool setAddressSucceeds = true;
   std::vector<uint8_t> addressLog;     ///< every SetI2cAddress() argument, in order

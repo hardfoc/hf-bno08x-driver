@@ -8,6 +8,7 @@
 #include "bno08x_version.h"
 #include "dfu/HcBin.h"
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -18,6 +19,31 @@ extern "C" {
 #include "sh2/sh2_SensorValue.h"
 #include "sh2/sh2_err.h"
 }
+
+/**
+ * @brief GetLastError() value when Begin() is refused because another BNO085
+ *        object already holds the SH-2 session.
+ *
+ * The CEVA SH-2 library keeps its state in one global instance (`sh2_t _sh2`
+ * in sh2.c, one SHTP instance in shtp.c) and its API takes no handle, so a
+ * process can run one SH-2 session at a time. A second `sh2_open()` would
+ * silently reset the first session; the driver refuses it instead. Outside
+ * the `SH2_ERR_*` range of sh2_err.h.
+ */
+inline constexpr int BNO08X_ERR_SH2_SESSION_IN_USE = -100;
+
+namespace bno08x::detail {
+/**
+ * @brief Owner of the process-wide SH-2 session (nullptr when free).
+ *
+ * Shared by every BNO085<CommType> instantiation, since they all use the same
+ * vendor library state.
+ */
+inline std::atomic<const void*>& Sh2SessionOwner() noexcept {
+  static std::atomic<const void*> owner{nullptr};
+  return owner;
+}
+} // namespace bno08x::detail
 
 /**
  * @brief Default compiled-in firmware image for DFU.
@@ -365,6 +391,10 @@ struct DfuMemoryImage {
  *        object. The driver stores a reference, not a copy.
  * @note  This class is not thread-safe. Callers must serialize access
  *        externally if used from multiple tasks/threads.
+ * @note  One SH-2 session per process: the CEVA SH-2 library keeps global
+ *        state, so a second object's Begin() is refused with
+ *        BNO08X_ERR_SH2_SESSION_IN_USE while another object's session is
+ *        open. UART-RVC objects are not limited.
  */
 template <typename CommType>
 class BNO085 {
@@ -398,10 +428,23 @@ public:
    * Opens the communication bus, connects to the SH-2 layer, sends the
    * reinitialize command, and registers the internal sensor/event callbacks.
    *
+   * Only one BNO085 object in the process can hold an SH-2 session at a time
+   * (the CEVA library keeps a single global session). While another object
+   * holds it, Begin() returns `false` with BNO08X_ERR_SH2_SESSION_IN_USE and
+   * touches neither the library nor the bus. Close() or destroying the owner
+   * frees the session. UART-RVC and DFU do not use the library.
+   *
    * @pre  Interface type must NOT be UARTRVC.
    * @return  `true` on success, `false` on failure or wrong interface type.
    */
   bool Begin() noexcept;
+
+  /**
+   * @brief True while any BNO085 object in the process holds the SH-2 session.
+   */
+  static bool Sh2SessionInUse() noexcept {
+    return bno08x::detail::Sh2SessionOwner().load() != nullptr;
+  }
 
   /**
    * @brief Close the currently active session and release transport resources.
@@ -730,6 +773,11 @@ public:
 private:
   /** @brief Initialize HAL wrapper function pointers and comm binding. */
   void prepareHalWrapper() noexcept;
+
+  /** @brief Claim the process-wide SH-2 session for this object. */
+  bool acquireSh2Session() noexcept;
+  /** @brief Release the SH-2 session if this object holds it. */
+  void releaseSh2Session() noexcept;
 
   /** @brief Drive a control pin; false if the port reported a GPIO error. */
   bool setPin(bno08x::CtrlPin pin, bool active) noexcept;
