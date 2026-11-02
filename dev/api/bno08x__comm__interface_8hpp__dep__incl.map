@@ -1,8 +1,0 @@
-<map id="inc/bno08x_comm_interface.hpp" name="inc/bno08x_comm_interface.hpp">
-<area shape="rect" id="Node000001" title="CRTP&#45;based communication interface for the BNO08x IMU family." alt="" coords="5,5,240,31"/>
-<area shape="rect" id="Node000002" href="$bno08x_8hpp.html" title="High&#45;level C++ driver for the BNO08x 9&#45;axis IMU family." alt="" coords="62,79,183,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,44,125,79,120,79,120,44"/>
-<area shape="rect" id="Node000003" href="$bno08x_8ipp.html" title="Template method implementations for the BNO085 driver class." alt="" coords="64,152,181,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="117,118,118,152,113,152,111,118"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="129,139,127,104,132,104,134,138"/>
-</map>

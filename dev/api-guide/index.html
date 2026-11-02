@@ -1407,7 +1407,7 @@
 <h1 id="api-guide">API guide<a class="headerlink" href="#api-guide" title="Permanent link">&para;</a></h1>
 <p>How to do the common jobs with the driver: start the hub, enable reports, read them, stop, and handle errors.</p>
 <p>Every snippet on this page is compiled by the host CI from
-<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a>, with <code>Imu</code> standing for <code>BNO085&lt;MyI2c&gt;</code>. The
+<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a>, with <code>Imu</code> standing for <code>BNO085&lt;MyI2c&gt;</code>. The
 <a href="../api-reference/">API reference</a> lists every member.</p>
 <h2 id="the-shape-of-the-api">The shape of the API<a class="headerlink" href="#the-shape-of-the-api" title="Permanent link">&para;</a></h2>
 <p>One <code>BNO085&lt;Comm&gt;</code> object per sensor. Its calls fall into four groups; the port's <code>GetInterfaceType()</code> decides
@@ -1452,7 +1452,7 @@ which groups work:</p>
 <code>false</code>, <code>GetLastError()</code> holds the reason as an <code>SH2_ERR_*</code> code.</p>
 <h2 id="start-the-hub">Start the hub<a class="headerlink" href="#start-the-hub" title="Permanent link">&para;</a></h2>
 <div class="language-cpp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">bool</span><span class="w"> </span><span class="nf">start_imu</span><span class="p">(</span><span class="n">Imu</span><span class="o">&amp;</span><span class="w"> </span><span class="n">imu</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">imu</span><span class="p">.</span><span class="n">HardwareReset</span><span class="p">();</span><span class="w"> </span><span class="c1">// optional: NRST low 2 ms, then 50 ms for the hub to boot</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">imu</span><span class="p">.</span><span class="n">HardwareReset</span><span class="p">();</span><span class="w"> </span><span class="c1">// optional: NRST low 2 ms, then 94 ms for the hub to boot</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">imu</span><span class="p">.</span><span class="n">Begin</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"Begin failed: %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">imu</span><span class="p">.</span><span class="n">GetLastError</span><span class="p">());</span><span class="w"> </span><span class="c1">// SH2_ERR_* (sh2_err.h)</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
@@ -1647,6 +1647,11 @@ mix both styles. Outside an SH-2 session <code>HasNewData()</code> returns <code
 <td><code>GetState()</code></td>
 </tr>
 <tr>
+<td><code>BNO08X_ERR_SH2_SESSION_IN_USE</code> (-100)</td>
+<td><code>Begin()</code> refused: another <code>BNO085</code> object holds the one SH-2 session of the process</td>
+<td><code>Close()</code> the other object first (<a href="../architecture/">Architecture</a>)</td>
+</tr>
+<tr>
 <td><code>accuracy</code> 0 or 1</td>
 <td>Calibration not settled yet</td>
 <td>Move the device; keep it away from magnetic fields</td>
@@ -1660,9 +1665,11 @@ mix both styles. Outside an SH-2 session <code>HasNewData()</code> returns <code
 </table>
 <p><a href="../troubleshooting/">Troubleshooting</a> maps symptoms to causes.</p>
 <h2 id="control-pins">Control pins<a class="headerlink" href="#control-pins" title="Permanent link">&para;</a></h2>
-<p><code>HardwareReset(lowMs)</code> holds NRST active for <code>lowMs</code> (default 2 ms) and then waits 50 ms. <code>SetBootPin(true)</code>
+<p><code>HardwareReset(lowMs)</code> holds NRST active for <code>lowMs</code> (default 2 ms) and then waits <code>RESET_STARTUP_MS</code> (94 ms, the
+start-up time of datasheet figure 6-8). <code>SetBootPin(true)</code>
 asserts BOOTN (low) for the bootloader; <code>SetWakePin(true)</code> asserts WAKE in SPI mode. Each forwards to your port's
-<code>GpioSet()</code>, so a pin the board does not wire is a no-op. <a href="../hardware/#control-pins">Hardware</a> has the levels.</p>
+<code>GpioSet()</code>, so a pin the board does not wire is a no-op. All four return <code>false</code> when the port's <code>GpioSet()</code>
+reports a GPIO error (<a href="../porting/#gpio-errors">Porting</a>). <a href="../hardware/#control-pins">Hardware</a> has the levels.</p>
 
 
 

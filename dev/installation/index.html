@@ -641,6 +641,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#installed-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installed package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#esp-idf" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1314,6 +1325,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#installed-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installed package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#esp-idf" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1427,11 +1449,22 @@ directories (<code>inc/</code>, <code>src/</code>, <code>src/dfu/</code>, <code>
 </tr>
 </tbody>
 </table>
-<p>Use the driver from source with <code>add_subdirectory()</code>. The install rules copy only <code>inc/</code>, while <code>bno08x.hpp</code>
-includes <code>src/bno08x.ipp</code> and the SH-2 headers, so an installed package does not compile yet.</p>
+<h2 id="installed-package">Installed package<a class="headerlink" href="#installed-package" title="Permanent link">&para;</a></h2>
+<p><code>cmake --install</code> ships the static library, every header the public headers include (<code>bno08x.hpp</code>,
+<code>bno08x_comm_interface.hpp</code>, <code>bno08x.ipp</code>, the generated <code>bno08x_version.h</code>, <code>dfu/</code> and the CEVA <code>sh2/</code> headers)
+and a CMake package that exports the target <code>hf::bno08x</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cmake<span class="w"> </span>-S<span class="w"> </span>external/hf-bno08x-driver<span class="w"> </span>-B<span class="w"> </span>build-bno08x
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>cmake<span class="w"> </span>--build<span class="w"> </span>build-bno08x
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>cmake<span class="w"> </span>--install<span class="w"> </span>build-bno08x<span class="w"> </span>--prefix<span class="w"> </span>/opt/hf-bno08x
+</span></code></pre></div>
+<div class="language-cmake highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">find_package</span><span class="p">(</span><span class="s">hf_bno08x</span><span class="w"> </span><span class="s">CONFIG</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span><span class="w">            </span><span class="c"># CMAKE_PREFIX_PATH=/opt/hf-bno08x</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">hf::bno08x</span><span class="p">)</span>
+</span></code></pre></div>
+<p>The package keeps <code>hf::hf_bno08x</code>, the name earlier installs exported, as an alias. The host tests build such a
+consumer against a fresh install (<a href="../testing/">Testing and CI</a>).</p>
 <h2 id="esp-idf">ESP-IDF<a class="headerlink" href="#esp-idf" title="Permanent link">&para;</a></h2>
 <p>The ESP-IDF component wrapper is
-<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/</code></a>. Copy that folder
+<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/</code></a>. Copy that folder
 into your project's <code>components/</code> (or point <code>EXTRA_COMPONENT_DIRS</code> at it) and set the <code>HF_BNO08X_ROOT</code> cache
 variable to the driver checkout; the wrapper stops with a clear message when the path is wrong. Your component
 then declares <code>REQUIRES hf_bno08x</code>. The wrapper compiles the same sources and requires the <code>driver</code> and
@@ -1448,24 +1481,24 @@ then declares <code>REQUIRES hf_bno08x</code>. The wrapper compiles the same sou
 <tbody>
 <tr>
 <td>Settings</td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/cmake/hf_bno08x_build_settings.cmake"><code>cmake/hf_bno08x_build_settings.cmake</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/cmake/hf_bno08x_build_settings.cmake"><code>cmake/hf_bno08x_build_settings.cmake</code></a></td>
 <td>Sources, include directories, version: the single source of truth</td>
 </tr>
 <tr>
 <td>Library</td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
 <td>Static library for host builds, install rules and CI</td>
 </tr>
 <tr>
 <td>ESP-IDF</td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/CMakeLists.txt</code></a></td>
 <td>IDF component wrapper over the same settings</td>
 </tr>
 </tbody>
 </table>
 <p>The version is set once in the settings file and written into <code>bno08x_version.h</code> at configure time. Read it at
 run time:</p>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetBNO08xDriverVersion</span><span class="p">();</span><span class="w">   </span><span class="c1">// "1.0.0"; also BNO085&lt;MyI2c&gt;::GetDriverVersion()</span>
+<div class="language-cpp highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetBNO08xDriverVersion</span><span class="p">();</span><span class="w">   </span><span class="c1">// "1.0.0"; also BNO085&lt;MyI2c&gt;::GetDriverVersion()</span>
 </span></code></pre></div>
 <h2 id="firmware-image-for-updates">Firmware image for updates<a class="headerlink" href="#firmware-image-for-updates" title="Permanent link">&para;</a></h2>
 <p><code>src/dfu/firmware-bno.c</code> defines the image <code>Dfu()</code> uses by default. It is a 64-byte stub that the driver refuses

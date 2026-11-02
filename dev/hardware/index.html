@@ -1428,7 +1428,7 @@
 
 <h1 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">&para;</a></h1>
 <p>What to connect between your MCU and a BNO08x, with which bus settings, and the board-level traps to avoid.</p>
-<p>All values here come from the <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/docs/datasheet/BNO080_085-Datasheet.pdf">BNO08X datasheet</a> (CEVA 1000-3927, revision
+<p>All values here come from the <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/docs/datasheet/BNO080_085-Datasheet.pdf">BNO08X datasheet</a> (CEVA 1000-3927, revision
 1.17). Pin numbers are the 28-pin LGA's; a breakout board names them on its silkscreen and often straps some of
 them. When the datasheet and a board's schematic disagree, the schematic wins for what is strapped.</p>
 <h2 id="host-interface-pins">Host interface pins<a class="headerlink" href="#host-interface-pins" title="Permanent link">&para;</a></h2>
@@ -1573,12 +1573,8 @@ port maps a state to a level. ACTIVE means "function asserted", which is a low l
 </tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="admonition-title"><code>SelectInterface()</code> swaps UART and UART-RVC</p>
-<p>In this release <code>SelectInterface(BNO085Interface::UART)</code> drives PS1 low and PS0 high, which selects UART-RVC,
-and <code>SelectInterface(BNO085Interface::UARTRVC)</code> selects UART-SHTP. I2C and SPI are correct. Strap the pins in
-hardware, or drive PS0 and PS1 from your own code with the table above.</p>
-</div>
+<p>If your board wires PS0 and PS1 to GPIOs, <code>SelectInterface(iface)</code> drives them to the row of the table for
+<code>iface</code> (the enum value is the PS1:PS0 pair); call it before <code>HardwareReset()</code>.</p>
 <h2 id="bus-settings">Bus settings<a class="headerlink" href="#bus-settings" title="Permanent link">&para;</a></h2>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="i2c" name="__tabbed_1" type="radio" /><input id="spi" name="__tabbed_1" type="radio" /><input id="uart" name="__tabbed_1" type="radio" /><input id="uart-rvc" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="i2c">I2C</label><label for="spi">SPI</label><label for="uart">UART</label><label for="uart-rvc">UART-RVC</label></div>
 <div class="tabbed-content">
@@ -1743,8 +1739,8 @@ hardware, or drive PS0 and PS1 from your own code with the table above.</p>
 </tbody>
 </table>
 <p>Handle H_INTN within a tenth of your fastest report period: late responses starve the fusion processing and add
-errors. <code>HardwareReset()</code> waits 50 ms after releasing NRST; <code>Begin()</code> then waits up to 200 ms for the hub's reset
-message, which covers the 94 ms start-up.</p>
+errors. <code>HardwareReset()</code> waits <code>RESET_STARTUP_MS</code> (94 ms: t1 at least 90 ms plus t2 about 4 ms) after releasing
+NRST, so the hub has finished its start-up before the first transfer.</p>
 <h2 id="power">Power<a class="headerlink" href="#power" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1785,11 +1781,11 @@ sees lost reports and degraded fusion. Wire H_INTN, make <code>DataAvailable()</
 <li><strong>I2C clock stretching.</strong> A BNO085 polled with no data holds SCL low until it has some. Gate reads on H_INTN, and
   give your I2C peripheral a clock-stretch timeout longer than your slowest report period.</li>
 <li><strong>UART needs a crystal.</strong> UART-SHTP and UART-RVC do not work reliably on the internal oscillator.</li>
-<li><strong>Bootloader address.</strong> In the bootloader the I2C address moves to <code>0x28</code> / <code>0x29</code>; a port used for firmware
-  updates over I2C must switch address (see <a href="../dfu/">Firmware update</a>).</li>
+<li><strong>Bootloader address.</strong> In the bootloader the I2C address moves to <code>0x28</code> / <code>0x29</code>; the driver switches a port
+  that has the I2C address hooks there for the transfer (see <a href="../dfu/">Firmware update</a>).</li>
 </ul>
 <h2 id="evaluation-setup">Evaluation setup<a class="headerlink" href="#evaluation-setup" title="Permanent link">&para;</a></h2>
-<p>The <a href="../examples/">ESP32 examples</a> run on an ESP32-S3 with a BNO08x breakout over I2C:</p>
+<p>The <a href="../examples/">ESP32 examples</a> run on an ESP32-S3 with a BNO08x breakout, over I2C unless noted:</p>
 <table>
 <thead>
 <tr>
@@ -1811,13 +1807,21 @@ sees lost reports and degraded fusion. Wire H_INTN, make <code>DataAvailable()</
 <td>16</td>
 </tr>
 <tr>
-<td>UART-RVC TX, RX</td>
-<td>21, 20 (the RVC example)</td>
+<td>SPI SCLK, MOSI, MISO, CS</td>
+<td>12, 11, 13, 10 (<code>spi_polling</code>; mode 3, 3 MHz)</td>
+</tr>
+<tr>
+<td>PS0/WAKE</td>
+<td>18 (<code>spi_polling</code>; PS1 strapped high)</td>
+</tr>
+<tr>
+<td>UART TX, RX</td>
+<td>21, 20 (<code>uart_shtp_polling</code> at 3 Mbit/s, PS1 high and PS0 low; <code>rvc_mode</code> at 115200, PS1 low and PS0 high)</td>
 </tr>
 </tbody>
 </table>
 <p>The pin assignment lives in
-<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/examples/esp32/main/esp32_bno08x_test_config.hpp"><code>esp32_bno08x_test_config.hpp</code></a>.</p>
+<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/examples/esp32/main/esp32_bno08x_test_config.hpp"><code>esp32_bno08x_test_config.hpp</code></a>.</p>
 <h2 id="reference-documents">Reference documents<a class="headerlink" href="#reference-documents" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1828,7 +1832,7 @@ sees lost reports and degraded fusion. Wire H_INTN, make <code>DataAvailable()</
 </thead>
 <tbody>
 <tr>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/docs/datasheet/BNO080_085-Datasheet.pdf">BNO08X datasheet</a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/docs/datasheet/BNO080_085-Datasheet.pdf">BNO08X datasheet</a></td>
 <td>Pins, interfaces, timing, report rates, electrical limits</td>
 </tr>
 <tr>

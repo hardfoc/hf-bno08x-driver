@@ -1352,8 +1352,10 @@ it, keep the supply stable during the transfer, and check that the image's part 
 <li><strong>I2C, SPI or UART.</strong> The bootloader uses the interface the PS pins select; UART-RVC has no bootloader mode, so
   the DFU calls fail with <code>SH2_ERR_BAD_PARAM</code> on a <code>UARTRVC</code> port.</li>
 <li><strong>A different I2C address.</strong> Over I2C the bootloader answers at <code>0x28</code> (SA0 low) or <code>0x29</code> (SA0 high), not
-  <code>0x4A</code> / <code>0x4B</code>. The driver does not switch addresses: your port must talk to the bootloader address between
-  <code>EnterBootloader()</code> and <code>ExitBootloaderAndReboot()</code>.</li>
+  <code>0x4A</code> / <code>0x4B</code> (datasheet section 1.4). Give your I2C port the optional <code>GetI2cAddress()</code> and
+  <code>SetI2cAddress()</code> hooks (<a href="../porting/#i2c-port">Porting</a>): the DFU calls then switch it to
+  <code>BootloaderI2cAddress()</code> of its address (same SA0 bit) for the transfer and restore the address afterwards,
+  also when the transfer fails. A port without the hooks must talk to the bootloader address itself.</li>
 <li><strong>A vendor image.</strong> CEVA supplies BNO08x firmware as an HcBin image with metadata (<code>FW-Format</code>, <code>SW-Part-Number</code>).
   The image compiled in from <code>src/dfu/firmware-bno.c</code> is a 64-byte stub that the driver refuses.</li>
 </ul>
@@ -1385,14 +1387,14 @@ it, keep the supply stable during the transfer, and check that the image's part 
 <div class="hf-steps">
 <ol>
 <li><strong>Enter the bootloader.</strong> <code>EnterBootloader(10, 50)</code>: close any open session, open the port, assert BOOTN, hold
-   NRST low 10 ms, wait 50 ms, release BOOTN, wait 50 ms.</li>
+   NRST low 10 ms, wait 94 ms (<code>RESET_STARTUP_MS</code>), release BOOTN, wait 50 ms.</li>
 <li><strong>Check the image.</strong> <code>FW-Format</code> must be <code>BNO_V1</code> and <code>SW-Part-Number</code> a known part (or the one you require),
    and the image at least 1024 bytes; otherwise <code>SH2_ERR_BAD_PARAM</code> before anything is sent.</li>
 <li><strong>Send the size.</strong> The application length as 4 bytes big-endian plus CRC-16, then the packet length (1 to 64
    bytes) plus CRC-16. The bootloader acknowledges each with <code>s</code>.</li>
 <li><strong>Send the image.</strong> Packets of up to 64 bytes, each with a CRC-16 (CCITT, polynomial 0x1021, initial value
    0xFFFF), each acknowledged; up to 5 attempts and 100 ms per packet. <code>options.progress</code> runs after each one.</li>
-<li><strong>Reboot.</strong> <code>ExitBootloaderAndReboot(2, 100)</code>: BOOTN high, NRST low 2 ms, wait 50 ms plus 100 ms. Then call
+<li><strong>Reboot.</strong> <code>ExitBootloaderAndReboot(2, 100)</code>: BOOTN high, NRST low 2 ms, wait 94 ms plus 100 ms. Then call
    <code>Begin()</code> as usual.</li>
 </ol>
 </div>
@@ -1440,9 +1442,9 @@ it, keep the supply stable during the transfer, and check that the image's part 
 </table>
 <p><code>DfuMemoryImage</code> describes a raw image in memory: <code>data</code>, <code>length</code>, <code>format</code>, <code>partNumber</code> and an optional
 <code>preferredPacketLen</code>. For an image you stream from storage, implement the <code>HcBin_t</code> function table
-(<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/src/dfu/HcBin.h"><code>src/dfu/HcBin.h</code></a>) and call <code>DfuWithOptions(image, options)</code> between the bootloader calls.</p>
+(<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/src/dfu/HcBin.h"><code>src/dfu/HcBin.h</code></a>) and call <code>DfuWithOptions(image, options)</code> between the bootloader calls.</p>
 <h2 id="step-by-step">Step by step<a class="headerlink" href="#step-by-step" title="Permanent link">&para;</a></h2>
-<p>Call the pieces yourself when you need to do something between them, such as switching the I2C address:</p>
+<p>Call the pieces yourself when you need to do something between them:</p>
 <table>
 <thead>
 <tr>
@@ -1457,7 +1459,7 @@ it, keep the supply stable during the transfer, and check that the image's part 
 </tr>
 <tr>
 <td><code>DfuFromMemory(image, options)</code></td>
-<td>Steps 2 to 4 from a <code>DfuMemoryImage</code></td>
+<td>Steps 2 to 4 from a <code>DfuMemoryImage</code>, at the bootloader I2C address</td>
 </tr>
 <tr>
 <td><code>DfuWithOptions(hcbin, options)</code> / <code>Dfu(hcbin)</code></td>

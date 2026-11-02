@@ -1362,7 +1362,7 @@
 
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
 <p>The settings a BNO08x needs: which reports at which rates, the pins sampled at reset, and the limits of the hub.</p>
-<p>Every snippet here is compiled from <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/tests/docs/configuration.cpp"><code>tests/docs/configuration.cpp</code></a>. The driver
+<p>Every snippet here is compiled from <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/tests/docs/configuration.cpp"><code>tests/docs/configuration.cpp</code></a>. The driver
 has no configuration struct: the hub is configured per report with <code>EnableSensor()</code>, and the board with straps.</p>
 <h2 id="report-rates">Report rates<a class="headerlink" href="#report-rates" title="Permanent link">&para;</a></h2>
 <div class="language-cpp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">bool</span><span class="w"> </span><span class="nf">configure_reports</span><span class="p">(</span><span class="n">BNO085</span><span class="o">&lt;</span><span class="n">MyI2c</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">imu</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -1519,8 +1519,8 @@ calibrates continuously; heading (<code>RotationVector</code>) needs the magneto
 movements through different orientations. Use <code>GameRotationVector</code> when heading does not matter and magnetic
 disturbances do.</p>
 <h2 id="where-the-values-come-from">Where the values come from<a class="headerlink" href="#where-the-values-come-from" title="Permanent link">&para;</a></h2>
-<p>The report IDs and units are in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> and the <a href="../api-reference/">API reference</a>;
-the rates and ranges in the <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/docs/datasheet/BNO080_085-Datasheet.pdf">datasheet</a>, sections 6.6 and 6.9.</p>
+<p>The report IDs and units are in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> and the <a href="../api-reference/">API reference</a>;
+the rates and ranges in the <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/docs/datasheet/BNO080_085-Datasheet.pdf">datasheet</a>, sections 6.6 and 6.9.</p>
 
 
 

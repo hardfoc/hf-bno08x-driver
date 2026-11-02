@@ -1379,6 +1379,11 @@ out) and from a usage problem (the call is refused for the interface or state).<
 <td><code>Close()</code> first; check <code>GetState()</code></td>
 </tr>
 <tr>
+<td><code>Begin()</code> is <code>false</code> with <code>BNO08X_ERR_SH2_SESSION_IN_USE</code> (-100)</td>
+<td>Another <code>BNO085</code> object already runs SH-2; the CEVA library has one session per program</td>
+<td>Use one SH-2 object, or <code>Close()</code> the other one first</td>
+</tr>
+<tr>
 <td>Works after power-up, fails after an MCU reset</td>
 <td>The hub kept running and its state no longer matches</td>
 <td>Call <code>HardwareReset()</code> before <code>Begin()</code></td>
@@ -1466,11 +1471,6 @@ out) and from a usage problem (the call is refused for the interface or state).<
 <td>Frames lost under load</td>
 <td><code>Read()</code> blocks, or the receive buffer is too small</td>
 <td>Make <code>Read()</code> non-blocking; buffer a few 19-byte frames</td>
-</tr>
-<tr>
-<td><code>SelectInterface(UARTRVC)</code> gives UART-SHTP</td>
-<td><code>SelectInterface()</code> swaps UART and UART-RVC in this release</td>
-<td>Drive PS0/PS1 yourself (<a href="../hardware/#protocol-selection">Hardware</a>)</td>
 </tr>
 </tbody>
 </table>

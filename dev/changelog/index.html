@@ -1183,6 +1183,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#changed" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1264,6 +1275,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#changed" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1311,16 +1333,65 @@ affected API.</p>
 <p>The build settings carry version 1.0.0; no release has been tagged yet.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li>SPI and UART-SHTP reference ports for ESP-IDF, <code>examples/esp32/main/esp32_bno08x_spi_bus.hpp</code> (mode 3 at
+  3 MHz, header-first reads in one chip select, PS0/WAKE handling) and <code>esp32_bno08x_uart_bus.hpp</code> (3 Mbit/s,
+  buffer status query, 100 µs host byte spacing), with the example apps <code>spi_polling</code> and <code>uart_shtp_polling</code>.</li>
+<li><code>inc/bno08x_shtp_uart.hpp</code>: portable UART-SHTP framing (flags, protocol IDs, byte stuffing, buffer status) for
+  any UART port, with host tests.</li>
+<li>Every ESP32 example app is now built by CI (<code>ci_enabled: true</code> in <code>app_config.yml</code>).</li>
 <li>Host unit tests (<code>-DHF_BNO08X_BUILD_TESTS=ON</code>) against a mock transport: UART-RVC parsing with the
   datasheet's example frame, interface and state guards, reset and bootloader pin sequences, DFU image checks.
   A CI workflow runs them with GCC and Clang.</li>
 </ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>SelectInterface()</code> drove PS1/PS0 swapped for the two UART modes: <code>UART</code> selected UART-RVC and <code>UARTRVC</code>
+  selected UART-SHTP. It now follows datasheet figure 1-5 (PS1/PS0 = 01 UART-RVC, 10 UART); I2C and SPI were
+  already right. <strong>BREAKING</strong> for boards that called it with the swapped value to work around the bug.</li>
+<li><code>HardwareReset()</code> waited 50 ms after releasing NRST, shorter than the hub's start-up time. It now waits
+  <code>RESET_STARTUP_MS</code> = 94 ms: t1 (internal initialization, at least 90 ms) plus t2 (internal configuration,
+  about 4 ms), datasheet section 6.5.3, figure 6-8. <code>EnterBootloader()</code> and <code>ExitBootloaderAndReboot()</code> use it
+  too, so each takes 44 ms longer.</li>
+<li>A program with more than one source file calling <code>DfuFromMemory()</code> / <code>RunDfuFromMemory()</code> failed to link with
+  Apple clang (duplicate thread-local wrapper symbols for <code>MemoryFirmware</code>'s state). The adapter keeps its
+  per-thread state in function-local statics now.</li>
+<li>Firmware update over I2C never reached the bootloader: the driver kept talking to the application address
+  (<code>0x4A</code> / <code>0x4B</code>) while the bootloader answers at <code>0x28</code> / <code>0x29</code> (datasheet section 1.4). I2C ports can now
+  provide the optional <code>GetI2cAddress()</code> / <code>SetI2cAddress()</code> hooks; <code>Dfu()</code>, <code>DfuWithOptions()</code>,
+  <code>DfuFromMemory()</code> and <code>RunDfuFromMemory()</code> switch the port to <code>BootloaderI2cAddress()</code> of its address (same SA0
+  bit) for the transfer and restore it on every path. A failed switch returns <code>SH2_ERR_IO</code>; an address that is not
+  a BNO08x address returns <code>SH2_ERR_BAD_PARAM</code>. Ports without the hooks behave as before. The ESP32 I2C port
+  and the documented port implement them.</li>
+<li>A second <code>BNO085</code> object's <code>Begin()</code> silently reset the SH-2 session of the first: CEVA's SH-2 library keeps one
+  global session, and <code>sh2_open()</code> clears it before it fails. <code>Begin()</code> now refuses while another object's session
+  is open, with the new error <code>BNO08X_ERR_SH2_SESSION_IN_USE</code> (-100), and touches neither the library nor the bus;
+  <code>Close()</code> and the destructor free the session, and <code>Sh2SessionInUse()</code> reports it. UART-RVC and DFU are not
+  affected.</li>
+<li><code>cmake --install</code> copied only <code>inc/</code>, while <code>bno08x.hpp</code> includes <code>bno08x.ipp</code>, <code>dfu/HcBin.h</code>, the SH-2
+  headers and (through the <code>.ipp</code>) <code>dfu/MemoryFirmware.hpp</code>, so an installed package did not compile. The install
+  now ships all of them, and the header includes <code>bno08x.ipp</code> through the include path instead of
+  <code>../src/bno08x.ipp</code>. The installed target is exported as the documented <code>hf::bno08x</code> (was <code>hf::hf_bno08x</code>,
+  kept as an alias by the package config). A new ctest, <code>hf_bno08x_install_consumer</code>, builds a <code>find_package()</code>
+  consumer against a fresh install.</li>
+</ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Documentation moved to the HardFOC MkDocs platform: new page set (quickstart, hardware, architecture, API
+<li>
+<p>The port's <code>GpioSet()</code> now returns <code>bool</code> (<code>true</code> = pin driven or not wired, <code>false</code> = GPIO error), and the
+  driver passes it on: <code>HardwareReset()</code>, <code>SetBootPin()</code>, <code>SetWakePin()</code> and <code>SelectInterface()</code> return <code>bool</code>
+  instead of <code>void</code>, and <code>EnterBootloader()</code> / <code>ExitBootloaderAndReboot()</code> fail with <code>SH2_ERR_IO</code> and close the
+  port. <code>HardwareReset()</code> stops at a failed RSTN write instead of waiting. Ports with a <code>void</code> <code>GpioSet()</code> still
+  compile (detected at compile time) and are treated as never failing; any other return type is a compile error,
+  so an SDK status code is not read as a bool. Calls that ignore the result compile as before; code that takes
+  the address of one of the four member functions needs the new type. The ESP32 example ports return <code>false</code> on
+  an ESP-IDF error.</p>
+</li>
+<li>
+<p>Documentation moved to the HardFOC MkDocs platform: new page set (quickstart, hardware, architecture, API
   guide, porting, UART-RVC mode, firmware update, testing), code snippets compiled by the host build from
   <code>tests/docs/</code>, Doxygen under <code>/api/</code>, versioned with mike. The Jekyll site files and the doxygen-awesome
-  submodule are gone.</li>
+  submodule are gone.</p>
+</li>
 </ul>
 
 

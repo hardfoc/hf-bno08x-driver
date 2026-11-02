@@ -1348,7 +1348,7 @@
 <details class="hf-figure-desc">
 <summary>Figure description and sources</summary>
 <p>From top to bottom. Your application talks to one BNO085<Comm> object, whose public calls are listed from inc/bno08x.hpp. In SH-2 mode the core hands every transfer to the CEVA SH-2 and SHTP library (the src/sh2 submodule); in UART-RVC mode it parses the 19-byte frames itself; firmware updates use the bootloader protocol in the core. Both paths end in the communication interface (bno08x::CommInterface in inc/bno08x_comm_interface.hpp), a CRTP base whose methods your platform port implements: move bytes, report data-ready, wait, keep time and drive the control pins. Below it is the sensor hub.</p>
-<p>Drawn from: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> <code>BNO085 public members</code>; <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a> <code>CommInterface</code>; figure module <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
+<p>Drawn from: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> <code>BNO085 public members</code>; <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a> <code>CommInterface</code>; figure module <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
 </details>
 <h2 id="the-layers">The layers<a class="headerlink" href="#the-layers" title="Permanent link">&para;</a></h2>
 <table>
@@ -1363,7 +1363,7 @@
 <tbody>
 <tr>
 <td><strong>Hardware-agnostic core</strong>: <code>BNO085&lt;Comm&gt;</code></td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a></td>
 <td>Interface, SH-2 library</td>
 <td>Never</td>
 </tr>
@@ -1375,7 +1375,7 @@
 </tr>
 <tr>
 <td><strong>Communication interface</strong>: <code>bno08x::CommInterface&lt;Derived&gt;</code></td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/224304f52e6b6648f747fb454ba101f00729cab2/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/c8404de87280f76b7907a9b13e5d854b5ecef9c5/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a></td>
 <td>Your port</td>
 <td>Never</td>
 </tr>
@@ -1432,8 +1432,13 @@
   CEVA's own code, kept as a submodule. The core adds the C++ types, the report cache and the reset handling.</li>
 <li><strong>A latest-value cache.</strong> Each of the 47 possible sensor IDs keeps its last decoded value and a new-data flag,
   so callbacks and polling work together.</li>
-<li><strong>One SH-2 session per program.</strong> The CEVA library keeps its state in a single global instance, so one
-  <code>BNO085</code> object can run SH-2 at a time. UART-RVC objects do not use the library and have no such limit.</li>
+<li><strong>One SH-2 session per program.</strong> The CEVA library keeps its state in a single global instance (<code>_sh2</code> in
+  <code>sh2.c</code>, one SHTP instance in <code>shtp.c</code>) and its API takes no handle, so one <code>BNO085</code> object can run SH-2 at a
+  time. The driver enforces it: while one object's session is open, <code>Begin()</code> on any other object returns
+  <code>false</code> with <code>BNO08X_ERR_SH2_SESSION_IN_USE</code> before it touches the library, so the open session is never
+  reset behind its owner's back. <code>Close()</code> (or the owner's destructor) frees it; <code>Sh2SessionInUse()</code> tells
+  whether it is taken. Making the driver multi-instance would mean changing CEVA's library, which this repository
+  keeps unmodified. UART-RVC and firmware updates do not use the library and have no such limit.</li>
 <li><strong>Not thread-safe.</strong> Call one driver object from one task, or guard it with a mutex.</li>
 </ul>
 <h2 id="source-map">Source map<a class="headerlink" href="#source-map" title="Permanent link">&para;</a></h2>
@@ -1451,11 +1456,15 @@
 </tr>
 <tr>
 <td><code>src/bno08x.ipp</code></td>
-<td>Template implementation, included by the header</td>
+<td>Template implementation, included by the header (installed next to it)</td>
 </tr>
 <tr>
 <td><code>inc/bno08x_comm_interface.hpp</code></td>
 <td><code>CommInterface</code>, <code>BNO085Interface</code>, <code>CtrlPin</code>, <code>GpioSignal</code></td>
+</tr>
+<tr>
+<td><code>inc/bno08x_shtp_uart.hpp</code></td>
+<td>UART-SHTP framing for UART ports: <code>EncodeFrame()</code>, <code>FrameDecoder</code></td>
 </tr>
 <tr>
 <td><code>src/sh2/</code></td>
