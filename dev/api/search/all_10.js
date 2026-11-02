@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['scalar_0',['scalar',['../struct_sensor_event.html#ade06fe5e89cd46761782ea887497a1f3',1,'SensorEvent']]],
+  ['selectinterface_1',['SelectInterface',['../class_b_n_o085.html#a5f42063c1b13f16385744abc5595a832',1,'BNO085']]],
+  ['sensor_2',['sensor',['../struct_sensor_event.html#a2a6ead14a1676d5412cf9ec6b4986d62',1,'SensorEvent']]],
+  ['sensor_20types_20and_20data_20structures_3',['Sensor Types and Data Structures',['../group___sensor_types.html',1,'']]],
+  ['sensorcallback_4',['SensorCallback',['../group___sensor_types.html#gae10cac53e8962550a2efb17043c5355e',1,'bno08x.hpp']]],
+  ['sensorevent_5',['SensorEvent',['../struct_sensor_event.html',1,'']]],
+  ['sensortimeus_6',['sensorTimeUs',['../struct_raw_vector3.html#ac70b2a3d08043f6c934f74417b737c9f',1,'RawVector3']]],
+  ['servicervc_7',['ServiceRvc',['../class_b_n_o085.html#a362f9fa742b11893ecdb3a7b896102ef',1,'BNO085']]],
+  ['setbootpin_8',['SetBootPin',['../class_b_n_o085.html#ab2eaebd8df2ccc34046d113fd301bfdb',1,'BNO085']]],
+  ['setcallback_9',['SetCallback',['../class_b_n_o085.html#a3953f176fe778583f95f41637ddf278e',1,'BNO085']]],
+  ['setrvccallback_10',['SetRvcCallback',['../class_b_n_o085.html#af733dead3ce1a525d7c13b268369023f',1,'BNO085']]],
+  ['setwakepin_11',['SetWakePin',['../class_b_n_o085.html#a61ea20fc60e1593b8a81addcee947e39',1,'BNO085']]],
+  ['sh2active_12',['Sh2Active',['../group___sensor_types.html#gga1df635b937d37d6ce4c41c7471351391a5141319ae42db24ae529c48c33e7fe0f',1,'bno08x.hpp']]],
+  ['shakedetector_13',['ShakeDetector',['../group___sensor_types.html#gga6f9f2bf1fa157ce63dacb450d5df6c62a4cb8f643cb530cbfba0cf2a488ab6bc4',1,'bno08x.hpp']]],
+  ['shutter_14',['shutter',['../struct_raw_optical_flow_event.html#a5af6719685508ee99cca79b8216629b0',1,'RawOpticalFlowEvent']]],
+  ['significantmotion_15',['SignificantMotion',['../group___sensor_types.html#gga6f9f2bf1fa157ce63dacb450d5df6c62a975bf8c0c5278ae9474fec58ba3700e2',1,'bno08x.hpp']]],
+  ['sleepdetector_16',['SleepDetector',['../group___sensor_types.html#gga6f9f2bf1fa157ce63dacb450d5df6c62a8c80d5cca9a487fc82a7375cfe802b28',1,'bno08x.hpp']]],
+  ['sleepstate_17',['sleepState',['../struct_sensor_event.html#a9355a02b7c3835d624eff7df29b376a2',1,'SensorEvent']]],
+  ['spi_18',['SPI',['../bno08x__comm__interface_8hpp.html#a1e8d3cde9f9e6ea515f5db028614f03ba33dc5312b091968f5a120c2484d40df8',1,'bno08x_comm_interface.hpp']]],
+  ['stabilityclassifier_19',['StabilityClassifier',['../group___sensor_types.html#gga6f9f2bf1fa157ce63dacb450d5df6c62aad8009bd69ab44ea8de9567ea92adcf8',1,'bno08x.hpp']]],
+  ['stabilitydetector_20',['StabilityDetector',['../group___sensor_types.html#gga6f9f2bf1fa157ce63dacb450d5df6c62ac049919dd5791fb90ebe0667030c6b58',1,'bno08x.hpp']]],
+  ['stepcount_21',['stepCount',['../struct_sensor_event.html#a6125d2b613fa4b9e868242856d4e21de',1,'SensorEvent']]],
+  ['stepcounter_22',['StepCounter',['../group___sensor_types.html#gga6f9f2bf1fa157ce63dacb450d5df6c62a813bf9f9ff76be55d85361ae7f5da7de',1,'bno08x.hpp']]],
+  ['stepdetector_23',['StepDetector',['../group___sensor_types.html#gga6f9f2bf1fa157ce63dacb450d5df6c62a2f52ce382545c872c8a270c2c81e02f8',1,'bno08x.hpp']]],
+  ['structures_24',['Sensor Types and Data Structures',['../group___sensor_types.html',1,'']]]
+];
