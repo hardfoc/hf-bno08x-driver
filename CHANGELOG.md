@@ -38,6 +38,12 @@ The build settings carry version 1.0.0; no release has been tagged yet.
   is open, with the new error `BNO08X_ERR_SH2_SESSION_IN_USE` (-100), and touches neither the library nor the bus;
   `Close()` and the destructor free the session, and `Sh2SessionInUse()` reports it. UART-RVC and DFU are not
   affected.
+- `cmake --install` copied only `inc/`, while `bno08x.hpp` includes `bno08x.ipp`, `dfu/HcBin.h`, the SH-2
+  headers and (through the `.ipp`) `dfu/MemoryFirmware.hpp`, so an installed package did not compile. The install
+  now ships all of them, and the header includes `bno08x.ipp` through the include path instead of
+  `../src/bno08x.ipp`. The installed target is exported as the documented `hf::bno08x` (was `hf::hf_bno08x`,
+  kept as an alias by the package config). A new ctest, `hf_bno08x_install_consumer`, builds a `find_package()`
+  consumer against a fresh install.
 
 ### Changed
 

@@ -906,9 +906,11 @@ inline const char* GetBNO08xDriverVersion() noexcept {
 // ============================================================================
 // Template Implementation
 // ============================================================================
-// The template method bodies live in bno08x.cpp and are included here so
-// that the compiler can instantiate them for any CommType.
+// The template method bodies live in src/bno08x.ipp and are included here so
+// that the compiler can instantiate them for any CommType. src/ is on the
+// include path in the build tree; an installed package puts bno08x.ipp next
+// to this header.
 #define BNO085_HEADER_INCLUDED
 // NOLINTNEXTLINE(bugprone-suspicious-include) - Intentional: template implementation file
-#include "../src/bno08x.ipp"
+#include "bno08x.ipp"
 #undef BNO085_HEADER_INCLUDED

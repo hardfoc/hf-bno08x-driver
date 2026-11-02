@@ -2,4 +2,11 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/hf_bno08xTargets.cmake")
 
+# Consumers link hf::bno08x (the same name as the build-tree alias). Earlier installs exported the target as
+# hf::hf_bno08x; keep that name working.
+if(TARGET hf::bno08x AND NOT TARGET hf::hf_bno08x)
+  add_library(hf::hf_bno08x INTERFACE IMPORTED)
+  set_target_properties(hf::hf_bno08x PROPERTIES INTERFACE_LINK_LIBRARIES hf::bno08x)
+endif()
+
 check_required_components(hf_bno08x)
