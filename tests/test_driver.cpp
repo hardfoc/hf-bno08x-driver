@@ -46,11 +46,11 @@ TEST_CASE("Begin() fails and leaves the driver closed when the transport does no
   CHECK(imu.GetState() == BNO085DriverState::Closed);
 }
 
-TEST_CASE("HardwareReset() asserts RSTN, waits, releases it and waits 50 ms") {
+TEST_CASE("HardwareReset() waits t1 + t2 = 94 ms after NRST (datasheet 6.5.3, figure 6-8)") {
   MockBus bus(BNO085Interface::I2C);
   BNO085<MockBus> imu(bus);
   imu.HardwareReset(5);
-  const std::vector<std::string> expected = {"RSTN active", "delay 5", "RSTN inactive", "delay 50"};
+  const std::vector<std::string> expected = {"RSTN active", "delay 5", "RSTN inactive", "delay 94"};
   CHECK(bus.log == expected);
 }
 
@@ -59,7 +59,7 @@ TEST_CASE("EnterBootloader() holds BOOTN across a reset, then releases it") {
   BNO085<MockBus> imu(bus);
   REQUIRE(imu.EnterBootloader(10, 50));
   const std::vector<std::string> expected = {"BOOTN active",  "RSTN active", "delay 10",
-                                             "RSTN inactive", "delay 50",    "BOOTN inactive",
+                                             "RSTN inactive", "delay 94",    "BOOTN inactive",
                                              "delay 50"};
   CHECK(bus.log == expected);
   CHECK_EQ(bus.opens, 1);
@@ -83,4 +83,29 @@ TEST_CASE("DfuFromMemory() rejects an empty image") {
 TEST_CASE("the version accessors match the build settings") {
   CHECK(std::string(BNO085<MockBus>::GetDriverVersion()) == HF_BNO08X_VERSION_STRING);
   CHECK(std::string(GetBNO08xDriverVersion()) == HF_BNO08X_VERSION_STRING);
+}
+
+// Datasheet 1000-3927 v1.17, figure 1-5 (Protocol selection, page 9):
+// PS1/PS0 = 00 I2C, 01 UART-RVC, 10 UART (SHTP), 11 SPI.
+TEST_CASE("SelectInterface() drives PS1/PS0 as in datasheet figure 1-5") {
+  struct Case {
+    BNO085Interface iface;
+    std::vector<std::string> pins;
+  };
+  const Case cases[] = {
+      {BNO085Interface::I2C, {"PS1 inactive", "PS0 inactive"}},
+      {BNO085Interface::UARTRVC, {"PS1 inactive", "PS0 active"}},
+      {BNO085Interface::UART, {"PS1 active", "PS0 inactive"}},
+      {BNO085Interface::SPI, {"PS1 active", "PS0 active"}},
+  };
+  for (const auto& c : cases) {
+    MockBus bus(BNO085Interface::I2C);
+    BNO085<MockBus> imu(bus);
+    imu.SelectInterface(c.iface);
+    CHECK(bus.log == c.pins);
+    // The enum value is the PS1:PS0 pin pair of the same table.
+    const auto bits = static_cast<unsigned>(c.iface);
+    CHECK_EQ(c.pins[0] == "PS1 active", (bits & 2U) != 0);
+    CHECK_EQ(c.pins[1] == "PS0 active", (bits & 1U) != 0);
+  }
 }

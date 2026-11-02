@@ -14,6 +14,11 @@ add_executable(hf_bno08x_host_tests
   test_main.cpp
   test_rvc.cpp
   test_driver.cpp
+  test_gpio_status.cpp
+  test_memory_firmware.cpp
+  test_dfu_i2c.cpp
+  test_sh2_session.cpp
+  test_shtp_uart.cpp
 )
 
 target_link_libraries(hf_bno08x_host_tests PRIVATE ${HF_BNO08X_TARGET_NAME})
@@ -37,3 +42,10 @@ target_link_libraries(hf_bno08x_doc_snippets PRIVATE ${HF_BNO08X_TARGET_NAME})
 target_include_directories(hf_bno08x_doc_snippets PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/docs)
 target_compile_features(hf_bno08x_doc_snippets PRIVATE cxx_std_20)
 target_compile_options(hf_bno08x_doc_snippets PRIVATE -Wall -Wextra)
+
+# `cmake --install` must ship every header the public headers include (bno08x.ipp, dfu/HcBin.h,
+# dfu/MemoryFirmware.hpp, the SH-2 headers, the generated bno08x_version.h) and export the documented target
+# hf::bno08x. Installs into the build tree and builds a find_package() consumer.
+add_test(NAME hf_bno08x_install_consumer
+  COMMAND ${CMAKE_COMMAND} -DBIN=${PROJECT_BINARY_DIR} -DSRC=${PROJECT_SOURCE_DIR}
+          -DCXX=${CMAKE_CXX_COMPILER} -DCC=${CMAKE_C_COMPILER} -P ${CMAKE_CURRENT_SOURCE_DIR}/install_consumer.cmake)

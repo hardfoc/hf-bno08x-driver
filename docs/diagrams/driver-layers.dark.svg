@@ -1,32 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1063" viewBox="0 0 1200 1063" role="img" aria-labelledby="driver-layers-title driver-layers-desc" font-family="Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1097" viewBox="0 0 1200 1097" role="img" aria-labelledby="driver-layers-title driver-layers-desc" font-family="Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
 <title id="driver-layers-title">Three layers, one of them yours</title>
 <desc id="driver-layers-desc">Layer diagram: the application calls the hardware-agnostic BNO085 driver, which uses the CEVA SH-2 library or its own UART-RVC parser, then the CRTP communication interface, which calls the platform port you write, which drives the I2C, SPI or UART bus and the control pins of the BNO08x.</desc>
 <defs><marker id="fk-arrow-rail" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6C7889"/></marker></defs>
-<rect x="0.5" y="0.5" width="1199" height="1062" rx="16" fill="#0E131A" stroke="#283241"/>
+<rect x="0.5" y="0.5" width="1199" height="1096" rx="16" fill="#0E131A" stroke="#283241"/>
 <text x="32" y="46.8" font-size="16" font-weight="700" letter-spacing="1.2" fill="#C7CBFF">ARCHITECTURE</text>
 <text x="32" y="85.6" font-size="32" font-weight="700" fill="#E8EDF3">Three layers, one of them yours</text>
 <text x="32" y="115.4" font-size="18" fill="#9AA6B5">The driver and the interface are the same on every MCU. The port is a small class with nine methods.</text>
 <rect x="32" y="131.4" width="1136" height="1" fill="#252F3C"/>
-<rect x="32" y="278.4" width="1136" height="157" rx="16" fill="#1C1F3D" stroke="#3B4080" stroke-width="1.2"/>
+<rect x="32" y="278.4" width="1136" height="191" rx="16" fill="#1C1F3D" stroke="#3B4080" stroke-width="1.2"/>
 <path d="M600 242.4 L600 274.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
-<path d="M600 439.4 L600 447.4 Q600 455.4 592 455.4 L314 455.4 Q306 455.4 306 463.4 L306 471.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
-<path d="M600 439.4 L600 447.4 Q600 455.4 608 455.4 L886 455.4 Q894 455.4 894 463.4 L894 471.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
-<path d="M306 593.4 L306 601.4 Q306 609.4 314 609.4 L592 609.4 Q600 609.4 600 617.4 L600 625.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
-<path d="M894 593.4 L894 601.4 Q894 609.4 886 609.4 L608 609.4 Q600 609.4 600 617.4 L600 625.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
-<path d="M600 747.4 L600 779.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
-<path d="M600 875.4 L600 907.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 473.4 L600 481.4 Q600 489.4 592 489.4 L314 489.4 Q306 489.4 306 497.4 L306 505.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 473.4 L600 481.4 Q600 489.4 608 489.4 L886 489.4 Q894 489.4 894 497.4 L894 505.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M306 627.4 L306 635.4 Q306 643.4 314 643.4 L592 643.4 Q600 643.4 600 651.4 L600 659.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M894 627.4 L894 635.4 Q894 643.4 886 643.4 L608 643.4 Q600 643.4 600 651.4 L600 659.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 781.4 L600 813.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 909.4 L600 941.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
 <rect x="32" y="149.4" width="1136" height="89" rx="12" fill="#151C26" stroke="#3A4657" stroke-width="1"/>
 <rect x="32" y="157.4" width="4" height="73" rx="2" fill="#94A3B8"/>
-<rect x="32" y="475.4" width="548" height="114" rx="12" fill="#2C2310" stroke="#FBBF24" stroke-width="1.4"/>
-<rect x="32" y="483.4" width="4" height="98" rx="2" fill="#FBBF24"/>
-<rect x="620" y="475.4" width="548" height="114" rx="12" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
-<rect x="620" y="483.4" width="4" height="98" rx="2" fill="#8C93FF"/>
-<rect x="32" y="629.4" width="1136" height="114" rx="12" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
-<rect x="32" y="637.4" width="4" height="98" rx="2" fill="#8C93FF"/>
-<rect x="32" y="783.4" width="1136" height="88" rx="12" fill="#0F2A28" stroke="#2DD4BF" stroke-width="1.4"/>
-<rect x="32" y="791.4" width="4" height="72" rx="2" fill="#2DD4BF"/>
-<rect x="32" y="911.4" width="1136" height="89" rx="12" fill="#151C26" stroke="#3A4657" stroke-width="1"/>
-<rect x="32" y="919.4" width="4" height="73" rx="2" fill="#94A3B8"/>
+<rect x="32" y="509.4" width="548" height="114" rx="12" fill="#2C2310" stroke="#FBBF24" stroke-width="1.4"/>
+<rect x="32" y="517.4" width="4" height="98" rx="2" fill="#FBBF24"/>
+<rect x="620" y="509.4" width="548" height="114" rx="12" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
+<rect x="620" y="517.4" width="4" height="98" rx="2" fill="#8C93FF"/>
+<rect x="32" y="663.4" width="1136" height="114" rx="12" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
+<rect x="32" y="671.4" width="4" height="98" rx="2" fill="#8C93FF"/>
+<rect x="32" y="817.4" width="1136" height="88" rx="12" fill="#0F2A28" stroke="#2DD4BF" stroke-width="1.4"/>
+<rect x="32" y="825.4" width="4" height="72" rx="2" fill="#2DD4BF"/>
+<rect x="32" y="945.4" width="1136" height="89" rx="12" fill="#151C26" stroke="#3A4657" stroke-width="1"/>
+<rect x="32" y="953.4" width="4" height="73" rx="2" fill="#94A3B8"/>
 <text x="56" y="184.4" font-size="20" font-weight="700" fill="#E8EDF3">Your application</text>
 <text x="56" y="215" font-size="17" fill="#D2DAE4">fusion consumer, control loop, logger ...</text>
 <rect x="48" y="323.4" width="63.2" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
@@ -59,45 +59,47 @@
 <text x="508.8" y="375.5" font-size="16" font-weight="700" fill="#C7CBFF">GetState</text>
 <rect x="597.3" y="357.4" width="144.4" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
 <text x="605.3" y="375.5" font-size="16" font-weight="700" fill="#C7CBFF">HardwareReset</text>
-<rect x="749.7" y="357.4" width="107.8" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="757.7" y="375.5" font-size="16" font-weight="700" fill="#C7CBFF">SetBootPin</text>
-<rect x="865.5" y="357.4" width="116.9" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="873.5" y="375.5" font-size="16" font-weight="700" fill="#C7CBFF">SetWakePin</text>
-<rect x="990.5" y="357.4" width="143.3" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="998.5" y="375.5" font-size="16" font-weight="700" fill="#C7CBFF">SelectInterface</text>
-<rect x="48" y="391.4" width="45.6" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="56" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">Dfu</text>
-<rect x="101.6" y="391.4" width="149.5" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="109.6" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">DfuWithOptions</text>
-<rect x="259.1" y="391.4" width="157.2" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="267.1" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">DfuFromMemory</text>
-<rect x="424.3" y="391.4" width="150.9" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="432.3" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">EnterBootloader</text>
-<rect x="583.2" y="391.4" width="230.6" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="591.2" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">ExitBootloaderAndReboot</text>
-<rect x="821.7" y="391.4" width="189.5" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
-<text x="829.7" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">RunDfuFromMemory</text>
+<rect x="749.7" y="357.4" width="202.3" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="757.7" y="375.5" font-size="16" font-weight="700" fill="#C7CBFF">BootloaderI2cAddress</text>
+<rect x="960" y="357.4" width="107.8" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="968" y="375.5" font-size="16" font-weight="700" fill="#C7CBFF">SetBootPin</text>
+<rect x="48" y="391.4" width="116.9" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="56" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">SetWakePin</text>
+<rect x="172.9" y="391.4" width="143.3" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="180.9" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">SelectInterface</text>
+<rect x="324.3" y="391.4" width="45.6" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="332.3" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">Dfu</text>
+<rect x="377.8" y="391.4" width="149.5" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="385.8" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">DfuWithOptions</text>
+<rect x="535.4" y="391.4" width="157.2" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="543.4" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">DfuFromMemory</text>
+<rect x="700.6" y="391.4" width="150.9" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="708.6" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">EnterBootloader</text>
+<rect x="859.4" y="391.4" width="230.6" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="867.4" y="409.5" font-size="16" font-weight="700" fill="#C7CBFF">ExitBootloaderAndReboot</text>
+<rect x="48" y="425.4" width="189.5" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="56" y="443.5" font-size="16" font-weight="700" fill="#C7CBFF">RunDfuFromMemory</text>
 <text x="48" y="307.4" font-size="17" font-weight="700" fill="#C7CBFF">HARDWARE-AGNOSTIC CORE</text>
 <text x="326.2" y="307.4" font-size="16" fill="#C7CBFF">BNO085&lt;Comm&gt;, inc/bno08x.hpp</text>
-<text x="56" y="510.4" font-size="20" font-weight="700" fill="#FDE68A">CEVA SH-2 and SHTP</text>
-<text x="56" y="541" font-size="17" fill="#D2DAE4">src/sh2 submodule: sensor configuration,</text>
-<text x="56" y="565.7" font-size="17" fill="#D2DAE4">report decoding, transport framing</text>
-<text x="644" y="510.4" font-size="20" font-weight="700" fill="#C7CBFF">UART-RVC parser and DFU</text>
-<text x="644" y="541" font-size="17" fill="#D2DAE4">in the core: 19-byte frames at 100 Hz;</text>
-<text x="644" y="565.7" font-size="17" fill="#D2DAE4">bootloader transfer with CRC-16</text>
-<text x="56" y="664.4" font-size="20" font-weight="700" fill="#C7CBFF">Communication interface</text>
-<text x="56" y="695" font-size="17" fill="#D2DAE4">bno08x::CommInterface&lt;Derived&gt;: CRTP base, resolved at compile time, no vtable;</text>
-<text x="56" y="719.7" font-size="17" fill="#D2DAE4">control pins by name (RSTN, BOOTN, WAKE, PS0, PS1) as ACTIVE / INACTIVE</text>
-<text x="56" y="818.4" font-size="20" font-weight="700" fill="#A7F3E6">Platform port (your class)</text>
-<text x="56" y="847.6" font-size="16" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace" fill="#D2DAE4">GetInterfaceType()  Open()  Close()  Write()  Read()  DataAvailable()  Delay()  GetTimeUs()  GpioSet()</text>
-<text x="56" y="946.4" font-size="20" font-weight="700" fill="#E8EDF3">BNO080 / BNO085 / BNO086</text>
-<text x="56" y="977" font-size="17" fill="#D2DAE4">I2C up to 400 kHz, SPI mode 3 up to 3 MHz, UART 3 Mbit/s or UART-RVC 115200  /  H_INTN, NRST, BOOTN</text>
-<rect x="32" y="1012.8" width="14" height="14" rx="4" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
-<text x="54" y="1027.4" font-size="16" fill="#9AA6B5">this library</text>
-<rect x="161.8" y="1012.8" width="14" height="14" rx="4" fill="#2C2310" stroke="#FBBF24" stroke-width="1.4"/>
-<text x="183.8" y="1027.4" font-size="16" fill="#9AA6B5">CEVA SH-2 library</text>
-<rect x="355.4" y="1012.8" width="14" height="14" rx="4" fill="#0F2A28" stroke="#2DD4BF" stroke-width="1.4"/>
-<text x="377.4" y="1027.4" font-size="16" fill="#9AA6B5">you write</text>
-<rect x="475.7" y="1012.8" width="14" height="14" rx="4" fill="#1B232E" stroke="#94A3B8" stroke-width="1.4"/>
-<text x="497.7" y="1027.4" font-size="16" fill="#9AA6B5">hardware</text>
+<text x="56" y="544.4" font-size="20" font-weight="700" fill="#FDE68A">CEVA SH-2 and SHTP</text>
+<text x="56" y="575" font-size="17" fill="#D2DAE4">src/sh2 submodule: sensor configuration,</text>
+<text x="56" y="599.7" font-size="17" fill="#D2DAE4">report decoding, transport framing</text>
+<text x="644" y="544.4" font-size="20" font-weight="700" fill="#C7CBFF">UART-RVC parser and DFU</text>
+<text x="644" y="575" font-size="17" fill="#D2DAE4">in the core: 19-byte frames at 100 Hz;</text>
+<text x="644" y="599.7" font-size="17" fill="#D2DAE4">bootloader transfer with CRC-16</text>
+<text x="56" y="698.4" font-size="20" font-weight="700" fill="#C7CBFF">Communication interface</text>
+<text x="56" y="729" font-size="17" fill="#D2DAE4">bno08x::CommInterface&lt;Derived&gt;: CRTP base, resolved at compile time, no vtable;</text>
+<text x="56" y="753.7" font-size="17" fill="#D2DAE4">control pins by name (RSTN, BOOTN, WAKE, PS0, PS1) as ACTIVE / INACTIVE</text>
+<text x="56" y="852.4" font-size="20" font-weight="700" fill="#A7F3E6">Platform port (your class)</text>
+<text x="56" y="881.6" font-size="16" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace" fill="#D2DAE4">GetInterfaceType()  Open()  Close()  Write()  Read()  DataAvailable()  Delay()  GetTimeUs()  GpioSet()</text>
+<text x="56" y="980.4" font-size="20" font-weight="700" fill="#E8EDF3">BNO080 / BNO085 / BNO086</text>
+<text x="56" y="1011" font-size="17" fill="#D2DAE4">I2C up to 400 kHz, SPI mode 3 up to 3 MHz, UART 3 Mbit/s or UART-RVC 115200  /  H_INTN, NRST, BOOTN</text>
+<rect x="32" y="1046.8" width="14" height="14" rx="4" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
+<text x="54" y="1061.4" font-size="16" fill="#9AA6B5">this library</text>
+<rect x="161.8" y="1046.8" width="14" height="14" rx="4" fill="#2C2310" stroke="#FBBF24" stroke-width="1.4"/>
+<text x="183.8" y="1061.4" font-size="16" fill="#9AA6B5">CEVA SH-2 library</text>
+<rect x="355.4" y="1046.8" width="14" height="14" rx="4" fill="#0F2A28" stroke="#2DD4BF" stroke-width="1.4"/>
+<text x="377.4" y="1061.4" font-size="16" fill="#9AA6B5">you write</text>
+<rect x="475.7" y="1046.8" width="14" height="14" rx="4" fill="#1B232E" stroke="#94A3B8" stroke-width="1.4"/>
+<text x="497.7" y="1061.4" font-size="16" fill="#9AA6B5">hardware</text>
 </svg>

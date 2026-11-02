@@ -58,7 +58,7 @@ apps:
     category: "example"
     idf_versions: ["release/v5.5"]
     build_types: ["Debug", "Release"]
-    ci_enabled: false
+    ci_enabled: true
     featured: true
     hardware_required: true
     features:
@@ -76,7 +76,7 @@ apps:
     category: "example"
     idf_versions: ["release/v5.5"]
     build_types: ["Debug", "Release"]
-    ci_enabled: false
+    ci_enabled: true
     featured: true
     hardware_required: true
     features:
@@ -94,7 +94,7 @@ apps:
     category: "example"
     idf_versions: ["release/v5.5"]
     build_types: ["Debug", "Release"]
-    ci_enabled: false
+    ci_enabled: true
     featured: true
     hardware_required: true
     features:
@@ -113,7 +113,7 @@ apps:
     category: "example"
     idf_versions: ["release/v5.5"]
     build_types: ["Debug", "Release"]
-    ci_enabled: false
+    ci_enabled: true
     featured: true
     hardware_required: true
     features:
@@ -132,7 +132,7 @@ apps:
     category: "test"
     idf_versions: ["release/v5.5"]
     build_types: ["Debug", "Release"]
-    ci_enabled: false
+    ci_enabled: true
     featured: true
     hardware_required: true
     features:
@@ -151,13 +151,49 @@ apps:
     category: "example"
     idf_versions: ["release/v5.5"]
     build_types: ["Debug", "Release"]
-    ci_enabled: false
+    ci_enabled: true
     featured: true
     hardware_required: true
     features:
       - "RVC mode initialization"
       - "Frame callback handling"
       - "Yaw, pitch, roll reading"
+      - "Real hardware testing"
+
+  # --------------------------------------------------------------------------
+  # SPI Polling Example (SH-2 over SPI)
+  # --------------------------------------------------------------------------
+  spi_polling:
+    description: "SH-2 over SPI: rotation vector and gyroscope, polled (SPI reference port)"
+    source_file: "spi_polling_example.cpp"
+    category: "example"
+    idf_versions: ["release/v5.5"]
+    build_types: ["Debug", "Release"]
+    ci_enabled: true
+    featured: true
+    hardware_required: true
+    features:
+      - "Esp32Bno08xSpiBus: mode 3 at 3 MHz, header-first reads in one chip select"
+      - "PS0/WAKE handling: high through reset, then the active-low wake before writes"
+      - "Rotation vector and calibrated gyroscope at 100 Hz"
+      - "Real hardware testing"
+
+  # --------------------------------------------------------------------------
+  # UART-SHTP Polling Example (SH-2 over UART)
+  # --------------------------------------------------------------------------
+  uart_shtp_polling:
+    description: "SH-2 over UART (UART-SHTP): rotation vector and linear acceleration, polled"
+    source_file: "uart_shtp_polling_example.cpp"
+    category: "example"
+    idf_versions: ["release/v5.5"]
+    build_types: ["Debug", "Release"]
+    ci_enabled: true
+    featured: true
+    hardware_required: true
+    features:
+      - "Esp32Bno08xUartBus: 3 Mbit/s 8N1 with SHTP framing (bno08x_shtp_uart.hpp)"
+      - "Buffer status query before each frame, 100 us between host bytes"
+      - "Rotation vector and linear acceleration at 50 Hz"
       - "Real hardware testing"
 
 # ============================================================================

@@ -38,8 +38,25 @@ directories (`inc/`, `src/`, `src/dfu/`, `src/sh2/` and the generated version he
 | `HF_BNO08X_ENABLE_WARNINGS` | `OFF` | `-Wall -Wextra -Wpedantic` on the library sources |
 | `HF_BNO08X_BUILD_TESTS` | `OFF` | Builds the host unit tests in `tests/` ([Testing and CI](testing.md)) |
 
-Use the driver from source with `add_subdirectory()`. The install rules copy only `inc/`, while `bno08x.hpp`
-includes `src/bno08x.ipp` and the SH-2 headers, so an installed package does not compile yet.
+## Installed package
+
+`cmake --install` ships the static library, every header the public headers include (`bno08x.hpp`,
+`bno08x_comm_interface.hpp`, `bno08x.ipp`, the generated `bno08x_version.h`, `dfu/` and the CEVA `sh2/` headers)
+and a CMake package that exports the target `hf::bno08x`:
+
+```bash
+cmake -S external/hf-bno08x-driver -B build-bno08x
+cmake --build build-bno08x
+cmake --install build-bno08x --prefix /opt/hf-bno08x
+```
+
+```cmake
+find_package(hf_bno08x CONFIG REQUIRED)            # CMAKE_PREFIX_PATH=/opt/hf-bno08x
+target_link_libraries(my_app PRIVATE hf::bno08x)
+```
+
+The package keeps `hf::hf_bno08x`, the name earlier installs exported, as an alias. The host tests build such a
+consumer against a fresh install ([Testing and CI](testing.md)).
 
 ## ESP-IDF
 

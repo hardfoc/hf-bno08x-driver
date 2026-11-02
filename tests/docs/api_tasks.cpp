@@ -10,7 +10,7 @@ using Imu = BNO085<MyI2c>;
 
 // --8<-- [start:begin]
 bool start_imu(Imu& imu) {
-  imu.HardwareReset(); // optional: NRST low 2 ms, then 50 ms for the hub to boot
+  imu.HardwareReset(); // optional: NRST low 2 ms, then 94 ms for the hub to boot
   if (!imu.Begin()) {
     std::printf("Begin failed: %d\n", imu.GetLastError()); // SH2_ERR_* (sh2_err.h)
     return false;

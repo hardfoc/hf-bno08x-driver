@@ -8,6 +8,7 @@
 #include "bno08x_version.h"
 #include "dfu/HcBin.h"
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -18,6 +19,31 @@ extern "C" {
 #include "sh2/sh2_SensorValue.h"
 #include "sh2/sh2_err.h"
 }
+
+/**
+ * @brief GetLastError() value when Begin() is refused because another BNO085
+ *        object already holds the SH-2 session.
+ *
+ * The CEVA SH-2 library keeps its state in one global instance (`sh2_t _sh2`
+ * in sh2.c, one SHTP instance in shtp.c) and its API takes no handle, so a
+ * process can run one SH-2 session at a time. A second `sh2_open()` would
+ * silently reset the first session; the driver refuses it instead. Outside
+ * the `SH2_ERR_*` range of sh2_err.h.
+ */
+inline constexpr int BNO08X_ERR_SH2_SESSION_IN_USE = -100;
+
+namespace bno08x::detail {
+/**
+ * @brief Owner of the process-wide SH-2 session (nullptr when free).
+ *
+ * Shared by every BNO085<CommType> instantiation, since they all use the same
+ * vendor library state.
+ */
+inline std::atomic<const void*>& Sh2SessionOwner() noexcept {
+  static std::atomic<const void*> owner{nullptr};
+  return owner;
+}
+} // namespace bno08x::detail
 
 /**
  * @brief Default compiled-in firmware image for DFU.
@@ -201,18 +227,18 @@ struct WheelEncoderEvent {
 struct SensorEvent {
   BNO085Sensor sensor{BNO085Sensor::Accelerometer}; ///< Which sensor produced this event
   uint64_t timestamp{0};                            ///< Event timestamp in microseconds
-  Vector3 vector{};          ///< 3-axis data (accel/gyro/mag/gravity/etc.)
-  Vector3 bias{};            ///< Bias for uncalibrated gyro/mag reports.
-  Vector3 angularVelocity{}; ///< Angular velocity for GyroIntegratedRV.
-  Quaternion rotation{};     ///< Quaternion data (rotation vector reports)
-  float scalar{0};           ///< Scalar payload (pressure/light/humidity/temp/etc.)
-  RawVector3 raw{};          ///< Raw integer payload for raw IMU reports.
-  uint32_t latencyUs{0};     ///< Latency for step detector/counter reports.
-  uint32_t stepCount{0};     ///< Cumulative step count (StepCounter)
-  uint16_t eventFlags{0};    ///< Bitfield payload for gesture detector reports.
-  uint8_t classification{0}; ///< Classifier result (stability/activity, etc.).
-  uint8_t sleepState{0};     ///< Sleep detector state.
-  TapEvent tap{};            ///< Tap event details (TapDetector)
+  Vector3 vector{};                                 ///< 3-axis data (accel/gyro/mag/gravity/etc.)
+  Vector3 bias{};                                   ///< Bias for uncalibrated gyro/mag reports.
+  Vector3 angularVelocity{};                        ///< Angular velocity for GyroIntegratedRV.
+  Quaternion rotation{};                            ///< Quaternion data (rotation vector reports)
+  float scalar{0};                    ///< Scalar payload (pressure/light/humidity/temp/etc.)
+  RawVector3 raw{};                   ///< Raw integer payload for raw IMU reports.
+  uint32_t latencyUs{0};              ///< Latency for step detector/counter reports.
+  uint32_t stepCount{0};              ///< Cumulative step count (StepCounter)
+  uint16_t eventFlags{0};             ///< Bitfield payload for gesture detector reports.
+  uint8_t classification{0};          ///< Classifier result (stability/activity, etc.).
+  uint8_t sleepState{0};              ///< Sleep detector state.
+  TapEvent tap{};                     ///< Tap event details (TapDetector)
   ActivityClassifierEvent activity{}; ///< Personal activity classifier payload.
   uint8_t motionIntent{0};            ///< Interactive ZRO motion intent.
   uint8_t motionRequest{0};           ///< Interactive ZRO motion request.
@@ -282,12 +308,7 @@ using RvcCallback = std::function<void(const RvcSensorValue&)>;
  * - `RvcActive`      : RVC UART parser is active.
  * - `DfuInProgress`  : DFU transfer is running.
  */
-enum class BNO085DriverState : uint8_t {
-  Closed = 0,
-  Sh2Active,
-  RvcActive,
-  DfuInProgress
-};
+enum class BNO085DriverState : uint8_t { Closed = 0, Sh2Active, RvcActive, DfuInProgress };
 
 /**
  * @struct DfuProgress
@@ -306,12 +327,12 @@ using DfuProgressCallback = std::function<void(const DfuProgress&)>;
  * @brief Controls DFU validation and transfer behavior.
  */
 struct DfuOptions {
-  bool requireFormatMatch{true};      ///< Validate FW-Format metadata.
-  bool requirePartNumber{true};       ///< Validate SW-Part-Number metadata.
-  const char* requiredFormat{"BNO_V1"}; ///< Required format when format check is enabled.
+  bool requireFormatMatch{true};           ///< Validate FW-Format metadata.
+  bool requirePartNumber{true};            ///< Validate SW-Part-Number metadata.
+  const char* requiredFormat{"BNO_V1"};    ///< Required format when format check is enabled.
   const char* requiredPartNumber{nullptr}; ///< Optional exact part number match.
-  uint8_t packetLenOverride{0};          ///< Optional DFU packet size override (1..64).
-  DfuProgressCallback progress{};        ///< Optional per-transfer progress callback.
+  uint8_t packetLenOverride{0};            ///< Optional DFU packet size override (1..64).
+  DfuProgressCallback progress{};          ///< Optional per-transfer progress callback.
 };
 
 /**
@@ -319,11 +340,11 @@ struct DfuOptions {
  * @brief Firmware image descriptor for class-aware memory DFU.
  */
 struct DfuMemoryImage {
-  const uint8_t* data{nullptr};      ///< Pointer to firmware bytes.
-  uint32_t length{0};                ///< Firmware length in bytes.
-  const char* format{"BNO_V1"};      ///< FW-Format metadata value.
+  const uint8_t* data{nullptr};        ///< Pointer to firmware bytes.
+  uint32_t length{0};                  ///< Firmware length in bytes.
+  const char* format{"BNO_V1"};        ///< FW-Format metadata value.
   const char* partNumber{"1000-3608"}; ///< SW-Part-Number metadata value.
-  uint32_t preferredPacketLen{0};    ///< Optional preferred DFU packet size.
+  uint32_t preferredPacketLen{0};      ///< Optional preferred DFU packet size.
 };
 
 /// @} // end of SensorTypes group
@@ -370,6 +391,10 @@ struct DfuMemoryImage {
  *        object. The driver stores a reference, not a copy.
  * @note  This class is not thread-safe. Callers must serialize access
  *        externally if used from multiple tasks/threads.
+ * @note  One SH-2 session per process: the CEVA SH-2 library keeps global
+ *        state, so a second object's Begin() is refused with
+ *        BNO08X_ERR_SH2_SESSION_IN_USE while another object's session is
+ *        open. UART-RVC objects are not limited.
  */
 template <typename CommType>
 class BNO085 {
@@ -403,10 +428,23 @@ public:
    * Opens the communication bus, connects to the SH-2 layer, sends the
    * reinitialize command, and registers the internal sensor/event callbacks.
    *
+   * Only one BNO085 object in the process can hold an SH-2 session at a time
+   * (the CEVA library keeps a single global session). While another object
+   * holds it, Begin() returns `false` with BNO08X_ERR_SH2_SESSION_IN_USE and
+   * touches neither the library nor the bus. Close() or destroying the owner
+   * frees the session. UART-RVC and DFU do not use the library.
+   *
    * @pre  Interface type must NOT be UARTRVC.
    * @return  `true` on success, `false` on failure or wrong interface type.
    */
   bool Begin() noexcept;
+
+  /**
+   * @brief True while any BNO085 object in the process holds the SH-2 session.
+   */
+  static bool Sh2SessionInUse() noexcept {
+    return bno08x::detail::Sh2SessionOwner().load() != nullptr;
+  }
 
   /**
    * @brief Close the currently active session and release transport resources.
@@ -566,23 +604,60 @@ public:
    * @brief Perform a hardware reset via the RSTN pin.
    *
    * Drives RSTN LOW for @p lowMs milliseconds, then releases it HIGH and
-   * waits 50 ms for the sensor to boot.
+   * waits RESET_STARTUP_MS (94 ms) for the sensor to boot: t1 (internal
+   * initialization, min 90 ms) plus t2 (internal configuration, typ 4 ms)
+   * of datasheet 1000-3927 section 6.5.3, figure 6-8.
    *
-   * @param[in] lowMs  Duration to hold RSTN LOW (default 2 ms).
+   * @param[in] lowMs  Duration to hold RSTN LOW (default 2 ms; the datasheet
+   *                   minimum t_nrst is 10 ns).
+   * @return  `false` if the port's GpioSet() reported an error on RSTN.
    */
-  void HardwareReset(uint32_t lowMs = 2) noexcept;
+  bool HardwareReset(uint32_t lowMs = 2) noexcept;
+
+  /**
+   * @brief Wait after releasing NRST before the hub can be addressed, in ms.
+   *
+   * t1 (internal initialization, min 90 ms) + t2 (internal configuration,
+   * typ 4 ms), datasheet 1000-3927 section 6.5.3, figures 6-8 and 6-9.
+   */
+  static constexpr uint32_t RESET_STARTUP_MS = 90 + 4;
+
+  /// @brief Application I2C address with SA0 low (datasheet figure 1-12); 0x4B with SA0 high.
+  static constexpr uint8_t I2C_ADDRESS_APP = 0x4A;
+  /// @brief Bootloader I2C address with SA0 low (datasheet section 1.4); 0x29 with SA0 high.
+  static constexpr uint8_t I2C_ADDRESS_BOOTLOADER = 0x28;
+
+  /**
+   * @brief Bootloader I2C address for a port configured at @p appAddress.
+   *
+   * The bootloader answers at 0x28 | SA0 instead of 0x4A | SA0 (datasheet
+   * 1000-3927 section 1.4 and figure 1-12), so SA0 is taken from bit 0 of
+   * the application address. A bootloader address maps to itself.
+   *
+   * @return 0x28 / 0x29, or 0 if @p appAddress is none of 0x4A, 0x4B, 0x28, 0x29.
+   */
+  static constexpr uint8_t BootloaderI2cAddress(uint8_t appAddress) noexcept {
+    const auto sa0 = static_cast<uint8_t>(appAddress & 0x01U);
+    const auto base = static_cast<uint8_t>(appAddress & 0xFEU);
+    if (base == I2C_ADDRESS_APP || base == I2C_ADDRESS_BOOTLOADER) {
+      return static_cast<uint8_t>(I2C_ADDRESS_BOOTLOADER | sa0);
+    }
+    return 0;
+  }
 
   /**
    * @brief Drive the BOOTN pin to enter/exit DFU bootloader mode.
    * @param[in] state  `true` = drive LOW (enter bootloader), `false` = HIGH.
+   * @return  `false` if the port's GpioSet() reported an error.
    */
-  void SetBootPin(bool state) noexcept;
+  bool SetBootPin(bool state) noexcept;
 
   /**
    * @brief Drive the WAKE pin (SPI mode only).
    * @param[in] state  `true` = drive LOW (wake sensor), `false` = release.
+   * @return  `false` if the port's GpioSet() reported an error.
    */
-  void SetWakePin(bool state) noexcept;
+  bool SetWakePin(bool state) noexcept;
 
   /**
    * @brief Select the host interface by driving PS0/PS1 pins.
@@ -591,8 +666,9 @@ public:
    * (rare -- most boards hard-wire them).
    *
    * @param[in] iface  Desired interface.
+   * @return  `false` if the port's GpioSet() reported an error on PS0 or PS1.
    */
-  void SelectInterface(BNO085Interface iface) noexcept;
+  bool SelectInterface(BNO085Interface iface) noexcept;
 
   /**
    * @brief Perform a Device Firmware Update (DFU).
@@ -600,6 +676,13 @@ public:
    * The sensor must already be in bootloader mode (hold BOOTN LOW during
    * reset). The method validates the firmware image, then transfers it
    * in packets with CRC-16 and ACK/NAK retry logic.
+   *
+   * Over I2C the bootloader answers at 0x28 / 0x29 (datasheet section 1.4).
+   * When the port has the optional `GetI2cAddress()` / `SetI2cAddress()`
+   * hooks, the driver switches it to BootloaderI2cAddress() of its current
+   * address for the transfer and restores the address afterwards, on every
+   * path (`SH2_ERR_IO` if a switch fails, `SH2_ERR_BAD_PARAM` if the current
+   * address is not a BNO08x address).
    *
    * @pre  Interface type must NOT be UARTRVC.
    * @param[in] fw  Firmware image. Defaults to the compiled-in stub from
@@ -638,7 +721,10 @@ public:
    * Holds BOOTN low, pulses reset, then releases BOOTN. Requires a transport
    * with BOOTN/RSTN wiring support.
    *
-   * @return true on success, false if interface/state is incompatible.
+   * @return true on success, false if interface/state is incompatible
+   *         (`SH2_ERR_BAD_PARAM` / `SH2_ERR_OP_IN_PROGRESS`), the port did not
+   *         open (`SH2_ERR`) or a control pin could not be driven
+   *         (`SH2_ERR_IO`; the port is closed again).
    */
   bool EnterBootloader(uint32_t resetLowMs = 10, uint32_t settleMs = 50) noexcept;
 
@@ -646,6 +732,7 @@ public:
    * @brief Exit bootloader mode and reboot into application firmware.
    *
    * Ensures BOOTN is released high, pulses reset, then waits for boot.
+   * Fails like EnterBootloader(), including `SH2_ERR_IO` on a GPIO error.
    */
   bool ExitBootloaderAndReboot(uint32_t resetLowMs = 2, uint32_t settleMs = 100) noexcept;
 
@@ -686,6 +773,14 @@ public:
 private:
   /** @brief Initialize HAL wrapper function pointers and comm binding. */
   void prepareHalWrapper() noexcept;
+
+  /** @brief Claim the process-wide SH-2 session for this object. */
+  bool acquireSh2Session() noexcept;
+  /** @brief Release the SH-2 session if this object holds it. */
+  void releaseSh2Session() noexcept;
+
+  /** @brief Drive a control pin; false if the port reported a GPIO error. */
+  bool setPin(bno08x::CtrlPin pin, bool active) noexcept;
 
   /** @brief Convert a cached SH-2 value to the high-level SensorEvent type. */
   SensorEvent toSensorEvent(BNO085Sensor sensor, const sh2_SensorValue_t& val) const noexcept;
@@ -768,10 +863,12 @@ private:
   static void dfuWrite32be(uint8_t* buf, uint32_t value) noexcept;           ///< @private
   static bool dfuIsKnownPartNumber(const char* part) noexcept;               ///< @private
   static void dfuAppendCrc(uint8_t* packet, uint8_t len) noexcept;           ///< @private
-  int dfuSend(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept;    ///< @private
+  int dfuSend(uint8_t* p_data, uint32_t len) noexcept;                       ///< @private
   int dfuSendAppSize(uint8_t* dfu_buff, uint32_t app_size) noexcept;         ///< @private
   int dfuSendPktSize(uint8_t* dfu_buff, uint8_t packet_len) noexcept;        ///< @private
   int dfuSendPkt(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept; ///< @private
+  int dfuSelectBootloaderAddress(uint8_t& appAddress, bool& switched) noexcept; ///< @private
+  bool dfuRestoreAppAddress(uint8_t appAddress) noexcept;                       ///< @private
 
   /// @}
 
@@ -785,7 +882,7 @@ private:
   int last_error_{0};         ///< Most recent SH-2 error code.
   BNO085DriverState state_{BNO085DriverState::Closed}; ///< Current operating state.
 
-  static constexpr std::size_t SENSOR_CACHE_SIZE_ = 0x2F; ///< Supports IDs 0x00..0x2E.
+  static constexpr std::size_t SENSOR_CACHE_SIZE_ = 0x2F;      ///< Supports IDs 0x00..0x2E.
   std::array<sh2_SensorValue_t, SENSOR_CACHE_SIZE_> latest_{}; ///< Cached latest sensor values.
   std::array<bool, SENSOR_CACHE_SIZE_> new_flag_{};            ///< Per-sensor new-data flags.
   std::array<uint32_t, SENSOR_CACHE_SIZE_>
@@ -809,9 +906,11 @@ inline const char* GetBNO08xDriverVersion() noexcept {
 // ============================================================================
 // Template Implementation
 // ============================================================================
-// The template method bodies live in bno08x.cpp and are included here so
-// that the compiler can instantiate them for any CommType.
+// The template method bodies live in src/bno08x.ipp and are included here so
+// that the compiler can instantiate them for any CommType. src/ is on the
+// include path in the build tree; an installed package puts bno08x.ipp next
+// to this header.
 #define BNO085_HEADER_INCLUDED
 // NOLINTNEXTLINE(bugprone-suspicious-include) - Intentional: template implementation file
-#include "../src/bno08x.ipp"
+#include "bno08x.ipp"
 #undef BNO085_HEADER_INCLUDED

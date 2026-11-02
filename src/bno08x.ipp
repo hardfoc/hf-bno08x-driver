@@ -49,6 +49,12 @@ bool BNO085<CommType>::Begin() noexcept {
     return false;
   }
 
+  // The SH-2 library has one global session; a second sh2_open() would reset the first.
+  if (!acquireSh2Session()) {
+    last_error_ = BNO08X_ERR_SH2_SESSION_IN_USE;
+    return false;
+  }
+
   last_error_ = 0;
   prepareHalWrapper();
 
@@ -56,6 +62,7 @@ bool BNO085<CommType>::Begin() noexcept {
   if (status != SH2_OK) {
     last_error_ = status;
     io_.Close();
+    releaseSh2Session();
     return false;
   }
   status = sh2_reinitialize();
@@ -63,6 +70,7 @@ bool BNO085<CommType>::Begin() noexcept {
     last_error_ = status;
     sh2_close();
     io_.Close();
+    releaseSh2Session();
     return false;
   }
   status = sh2_setSensorCallback(sensorCallback, this);
@@ -70,6 +78,7 @@ bool BNO085<CommType>::Begin() noexcept {
     last_error_ = status;
     sh2_close();
     io_.Close();
+    releaseSh2Session();
     return false;
   }
 
@@ -447,10 +456,26 @@ void BNO085<CommType>::Close() noexcept {
     return;
   sh2_close();
   io_.Close();
+  releaseSh2Session();
   state_ = BNO085DriverState::Closed;
   new_flag_.fill(false);
   last_interval_.fill(0);
   last_sensitivity_.fill(0.0f);
+}
+
+/** @brief Claim the process-wide SH-2 session; false if another object holds it. */
+template <typename CommType>
+bool BNO085<CommType>::acquireSh2Session() noexcept {
+  const void* expected = nullptr;
+  return bno08x::detail::Sh2SessionOwner().compare_exchange_strong(expected, this) ||
+         expected == this;
+}
+
+/** @brief Release the SH-2 session if this object holds it. */
+template <typename CommType>
+void BNO085<CommType>::releaseSh2Session() noexcept {
+  const void* expected = this;
+  bno08x::detail::Sh2SessionOwner().compare_exchange_strong(expected, nullptr);
 }
 
 // ---- SH-2 HAL callback bridges (CRTP CommInterface -> C sh2_Hal_t) ---------
@@ -576,26 +601,46 @@ bool BNO085<CommType>::configure(BNO085Sensor sensor, uint32_t interval_us, floa
 // ============================================================================
 
 /**
- * @brief Assert RSTN for @p lowMs, then release and wait for boot.
+ * @brief Drive one control pin through the port and return its status.
  *
- * The 50 ms post-release delay allows the sensor to complete its boot
- * sequence before any I2C/SPI/UART transactions.
+ * Goes through bno08x::detail::GpioSet() so a port whose GpioSet() returns
+ * `void` (the earlier contract) still compiles and counts as success.
  */
 template <typename CommType>
-void BNO085<CommType>::HardwareReset(uint32_t lowMs) noexcept {
+bool BNO085<CommType>::setPin(bno08x::CtrlPin pin, bool active) noexcept {
+  return bno08x::detail::GpioSet(io_, pin,
+                                 active ? bno08x::GpioSignal::ACTIVE : bno08x::GpioSignal::INACTIVE);
+}
+
+/**
+ * @brief Assert RSTN for @p lowMs, then release and wait for boot.
+ *
+ * After NRST rises the hub needs t1 (internal initialization, min 90 ms)
+ * plus t2 (internal configuration, typ 4 ms) before it asserts H_INTN and
+ * can be addressed (datasheet 1000-3927 section 6.5.3, figures 6-8 and 6-9).
+ * The driver waits RESET_STARTUP_MS = t1 + t2.
+ *
+ * If asserting RSTN fails nothing else is done. If releasing it fails the
+ * hub may still be held in reset, so the start-up wait is skipped.
+ */
+template <typename CommType>
+bool BNO085<CommType>::HardwareReset(uint32_t lowMs) noexcept {
   using bno08x::CtrlPin;
-  io_.GpioSetActive(CtrlPin::RSTN);   // Assert reset
+  if (!setPin(CtrlPin::RSTN, true)) { // Assert reset
+    return false;
+  }
   io_.Delay(lowMs);
-  io_.GpioSetInactive(CtrlPin::RSTN); // Release reset
-  io_.Delay(50);                      // Wait for sensor boot
+  if (!setPin(CtrlPin::RSTN, false)) { // Release reset
+    return false;
+  }
+  io_.Delay(RESET_STARTUP_MS); // t1 + t2 (datasheet 6.5.3)
+  return true;
 }
 
 /** @brief Forward BOOTN control to the CommInterface. */
 template <typename CommType>
-void BNO085<CommType>::SetBootPin(bool state) noexcept {
-  using bno08x::CtrlPin;
-  using bno08x::GpioSignal;
-  io_.GpioSet(CtrlPin::BOOTN, state ? GpioSignal::ACTIVE : GpioSignal::INACTIVE);
+bool BNO085<CommType>::SetBootPin(bool state) noexcept {
+  return setPin(bno08x::CtrlPin::BOOTN, state);
 }
 
 /** @brief Enter bootloader mode via BOOTN+reset sequence. */
@@ -621,9 +666,14 @@ bool BNO085<CommType>::EnterBootloader(uint32_t resetLowMs, uint32_t settleMs) n
     last_error_ = SH2_ERR;
     return false;
   }
-  io_.GpioSetActive(bno08x::CtrlPin::BOOTN);   // Assert BOOTN (enter bootloader)
-  HardwareReset(resetLowMs);
-  io_.GpioSetInactive(bno08x::CtrlPin::BOOTN); // Release BOOTN after reset
+  // Assert BOOTN, reset, then release BOOTN (BOOTN is sampled at reset, datasheet section 1.4).
+  const bool ok = setPin(bno08x::CtrlPin::BOOTN, true) && HardwareReset(resetLowMs);
+  const bool released = setPin(bno08x::CtrlPin::BOOTN, false);
+  if (!ok || !released) {
+    io_.Close();
+    last_error_ = SH2_ERR_IO;
+    return false;
+  }
   if (settleMs) {
     io_.Delay(settleMs);
   }
@@ -654,8 +704,12 @@ bool BNO085<CommType>::ExitBootloaderAndReboot(uint32_t resetLowMs, uint32_t set
     last_error_ = SH2_ERR;
     return false;
   }
-  io_.GpioSetInactive(bno08x::CtrlPin::BOOTN); // Ensure normal application boot path
-  HardwareReset(resetLowMs);
+  // BOOTN high at reset boots the application (datasheet section 1.4).
+  if (!setPin(bno08x::CtrlPin::BOOTN, false) || !HardwareReset(resetLowMs)) {
+    io_.Close();
+    last_error_ = SH2_ERR_IO;
+    return false;
+  }
   if (settleMs) {
     io_.Delay(settleMs);
   }
@@ -665,40 +719,29 @@ bool BNO085<CommType>::ExitBootloaderAndReboot(uint32_t resetLowMs, uint32_t set
 
 /** @brief Forward WAKE control to the CommInterface (SPI only). */
 template <typename CommType>
-void BNO085<CommType>::SetWakePin(bool state) noexcept {
-  using bno08x::CtrlPin;
-  using bno08x::GpioSignal;
-  io_.GpioSet(CtrlPin::WAKE, state ? GpioSignal::ACTIVE : GpioSignal::INACTIVE);
+bool BNO085<CommType>::SetWakePin(bool state) noexcept {
+  return setPin(bno08x::CtrlPin::WAKE, state);
 }
 
 /**
  * @brief Drive PS0/PS1 pins to select the host interface.
  *
  * PS pins are sampled at reset. This is only useful if the pins are
- * connected to controllable GPIOs.
+ * connected to controllable GPIOs. Levels follow datasheet 1000-3927
+ * figure 1-5 (Protocol selection): PS1/PS0 = 00 I2C, 01 UART-RVC,
+ * 10 UART (SHTP), 11 SPI. Both pins are always driven; the result is
+ * `false` if either failed.
  */
 template <typename CommType>
-void BNO085<CommType>::SelectInterface(BNO085Interface iface) noexcept {
+bool BNO085<CommType>::SelectInterface(BNO085Interface iface) noexcept {
   using bno08x::CtrlPin;
-  using bno08x::GpioSignal;
-  switch (iface) {
-  case BNO085Interface::I2C:
-    io_.GpioSetInactive(CtrlPin::PS1);
-    io_.GpioSetInactive(CtrlPin::PS0);
-    break;
-  case BNO085Interface::UARTRVC:
-    io_.GpioSetActive(CtrlPin::PS1);
-    io_.GpioSetInactive(CtrlPin::PS0);
-    break;
-  case BNO085Interface::UART:
-    io_.GpioSetInactive(CtrlPin::PS1);
-    io_.GpioSetActive(CtrlPin::PS0);
-    break;
-  case BNO085Interface::SPI:
-    io_.GpioSetActive(CtrlPin::PS1);
-    io_.GpioSetActive(CtrlPin::PS0);
-    break;
+  const auto bits = static_cast<uint8_t>(iface); // the enum value is the PS1:PS0 pair
+  if (bits > 3) {
+    return false;
   }
+  const bool ps1 = setPin(CtrlPin::PS1, (bits & 0x2U) != 0);
+  const bool ps0 = setPin(CtrlPin::PS0, (bits & 0x1U) != 0);
+  return ps1 && ps0;
 }
 
 // ============================================================================
@@ -911,7 +954,7 @@ void BNO085<CommType>::dfuAppendCrc(uint8_t* packet, uint8_t len) noexcept {
  * @return SH2_OK on success, or a negative SH-2 error code.
  */
 template <typename CommType>
-int BNO085<CommType>::dfuSend(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept {
+int BNO085<CommType>::dfuSend(uint8_t* p_data, uint32_t len) noexcept {
   unsigned int retries = 0;
   int status = SH2_OK;
   uint8_t ack = 0;
@@ -958,7 +1001,7 @@ template <typename CommType>
 int BNO085<CommType>::dfuSendAppSize(uint8_t* dfu_buff, uint32_t app_size) noexcept {
   dfuWrite32be(dfu_buff, app_size);
   dfuAppendCrc(dfu_buff, 4);
-  return dfuSend(dfu_buff, dfu_buff, 6);
+  return dfuSend(dfu_buff, 6);
 }
 
 /** @brief Send the 1-byte packet size + CRC. */
@@ -966,7 +1009,7 @@ template <typename CommType>
 int BNO085<CommType>::dfuSendPktSize(uint8_t* dfu_buff, uint8_t packet_len) noexcept {
   dfu_buff[0] = packet_len;
   dfuAppendCrc(dfu_buff, 1);
-  return dfuSend(dfu_buff, dfu_buff, 3);
+  return dfuSend(dfu_buff, 3);
 }
 
 /** @brief Send one firmware data packet + CRC. */
@@ -974,7 +1017,49 @@ template <typename CommType>
 int BNO085<CommType>::dfuSendPkt(uint8_t* dfu_buff, uint8_t* p_data, uint32_t len) noexcept {
   std::memcpy(dfu_buff, p_data, len);
   dfuAppendCrc(dfu_buff, len);
-  return dfuSend(dfu_buff, dfu_buff, len + 2);
+  return dfuSend(dfu_buff, len + 2);
+}
+
+/**
+ * @brief Switch an I2C port to the bootloader address for a DFU transfer.
+ *
+ * The bootloader answers at 0x28 | SA0 (datasheet 1000-3927 section 1.4).
+ * Ports without the optional address hooks are left alone.
+ *
+ * @param[out] appAddress  The port's address before the switch.
+ * @param[out] switched    True when the address was changed and must be restored.
+ * @return SH2_OK, SH2_ERR_BAD_PARAM (not a BNO08x address) or SH2_ERR_IO.
+ */
+template <typename CommType>
+int BNO085<CommType>::dfuSelectBootloaderAddress(uint8_t& appAddress, bool& switched) noexcept {
+  switched = false;
+  appAddress = 0;
+  if constexpr (bno08x::detail::kHasI2cAddressHooks<CommType>) {
+    appAddress = io_.GetI2cAddress();
+    const uint8_t boot = BootloaderI2cAddress(appAddress);
+    if (boot == 0) {
+      return SH2_ERR_BAD_PARAM;
+    }
+    if (boot == appAddress) {
+      return SH2_OK; // the port already talks to the bootloader
+    }
+    if (!io_.SetI2cAddress(boot)) {
+      return SH2_ERR_IO;
+    }
+    switched = true;
+  }
+  return SH2_OK;
+}
+
+/** @brief Restore the application I2C address after a DFU transfer. */
+template <typename CommType>
+bool BNO085<CommType>::dfuRestoreAppAddress(uint8_t appAddress) noexcept {
+  if constexpr (bno08x::detail::kHasI2cAddressHooks<CommType>) {
+    return io_.SetI2cAddress(appAddress);
+  } else {
+    (void)appAddress;
+    return true;
+  }
 }
 
 /** @brief Execute DFU with default validation options. */
@@ -1064,6 +1149,8 @@ int BNO085<CommType>::DfuWithOptions(const HcBin_t& fw, const DfuOptions& option
   const char* meta = nullptr;
   bool fw_opened = false;
   bool hal_opened = false;
+  uint8_t app_address = 0;
+  bool address_switched = false;
   uint8_t dfu_buff[DFU_MAX_PACKET_LEN + 2];
   sh2_Hal_t* hal = halWrapper_.asHal();
 
@@ -1113,6 +1200,13 @@ int BNO085<CommType>::DfuWithOptions(const HcBin_t& fw, const DfuOptions& option
   if (packet_len == 0 || packet_len > DFU_MAX_PACKET_LEN)
     packet_len = DFU_MAX_PACKET_LEN;
 
+  if (io_.GetInterfaceType() == BNO085Interface::I2C) {
+    // Datasheet section 1.4: over I2C the bootloader answers at 0x28 / 0x29, not 0x4A / 0x4B.
+    status = dfuSelectBootloaderAddress(app_address, address_switched);
+    if (status != SH2_OK)
+      goto dfu_close;
+  }
+
   status = hal->open(hal);
   if (status != SH2_OK)
     goto dfu_close;
@@ -1158,6 +1252,8 @@ dfu_close:
   }
   if (hal_opened)
     hal->close(hal);
+  if (address_switched && !dfuRestoreAppAddress(app_address) && status == SH2_OK)
+    status = SH2_ERR_IO;
 
 dfu_end:
   state_ = BNO085DriverState::Closed;

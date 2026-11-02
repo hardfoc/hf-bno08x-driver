@@ -12,7 +12,7 @@
  * No separate RVC HAL is needed -- just a CommInterface with GetInterfaceType()
  * returning BNO085Interface::UARTRVC.
  *
- * @note The BNO08x must have PS0/PS1 configured for RVC mode (PS1=HIGH, PS0=LOW)
+ * @note The BNO08x must have PS0/PS1 configured for RVC mode (PS1=LOW, PS0=HIGH)
  *       at reset time. RVC mode operates at 115200 baud.
  *
  * @author Nebiyu Tadesse
@@ -43,7 +43,7 @@ extern "C" void app_main(void) {
   ESP_LOGI(TAG, "Driver version: %s", GetBNO08xDriverVersion());
   ESP_LOGI(TAG, "");
   ESP_LOGI(TAG, "RVC mode uses UART at 115200 baud.");
-  ESP_LOGI(TAG, "Ensure BNO08x PS0/PS1 are set for RVC mode (PS1=HIGH, PS0=LOW).");
+  ESP_LOGI(TAG, "Ensure BNO08x PS0/PS1 are set for RVC mode (PS1=LOW, PS0=HIGH).");
   ESP_LOGI(TAG, "");
 
   // Configure UART transport for RVC mode

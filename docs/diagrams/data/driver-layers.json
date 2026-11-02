@@ -15,6 +15,7 @@
     "GetLastError",
     "GetState",
     "HardwareReset",
+    "BootloaderI2cAddress",
     "SetBootPin",
     "SetWakePin",
     "SelectInterface",

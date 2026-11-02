@@ -5,6 +5,8 @@
  * @copyright Copyright (c) 2024-2025 HardFOC. All rights reserved.
  */
 #include <cstdint>
+#include <type_traits>
+#include <utility>
 
 // ============================================================================
 // Interface Type Enum
@@ -19,13 +21,13 @@
  * - **SH-2 mode** (Begin, Update, EnableSensor, Dfu): requires `I2C`, `SPI`, or `UART`.
  * - **RVC mode** (BeginRvc, ServiceRvc, CloseRvc): requires `UARTRVC`.
  *
- * The enum values also correspond to the BNO08x PS1/PS0 pin states that
- * select the interface at boot time.
+ * The enum value is the PS1:PS0 pin pair (PS1 = bit 1, PS0 = bit 0) that
+ * selects the interface at reset, per datasheet 1000-3927 figure 1-5.
  */
 enum class BNO085Interface : uint8_t {
   I2C = 0,     ///< I2C bus (PS1=0, PS0=0). Supports SH-2 and DFU.
-  UARTRVC = 1, ///< UART in RVC mode (PS1=1, PS0=0). RVC frames only.
-  UART = 2,    ///< UART in SH-2 mode (PS1=0, PS0=1). Supports SH-2 and DFU.
+  UARTRVC = 1, ///< UART in RVC mode (PS1=0, PS0=1). RVC frames only.
+  UART = 2,    ///< UART in SH-2 mode (PS1=1, PS0=0). Supports SH-2 and DFU.
   SPI = 3      ///< SPI bus (PS1=1, PS0=1). Supports SH-2 and DFU.
 };
 
@@ -76,6 +78,65 @@ enum class GpioSignal : uint8_t {
   ACTIVE   = 1  ///< Pin function is asserted
 };
 
+namespace detail {
+
+/** @brief Return type of `Port::GpioSet(CtrlPin, GpioSignal)`. */
+template <typename Port>
+using GpioSetResult =
+    decltype(std::declval<Port&>().GpioSet(std::declval<CtrlPin>(), std::declval<GpioSignal>()));
+
+/** @brief True when the port's GpioSet() reports a status (returns bool). */
+template <typename Port>
+inline constexpr bool kGpioSetReportsStatus =
+    std::is_same_v<std::remove_cv_t<std::remove_reference_t<GpioSetResult<Port>>>, bool>;
+
+/**
+ * @brief Call the port's GpioSet() and return its status.
+ *
+ * A `bool` result is returned as-is; a `void` GpioSet() (the earlier
+ * contract) is treated as always successful. Any other return type is
+ * rejected at compile time so that an SDK status code (for example an
+ * `esp_err_t`, where 0 means success) cannot be read as a bool.
+ */
+template <typename Port>
+inline bool GpioSet(Port& port, CtrlPin pin, GpioSignal signal) noexcept {
+  using Result = GpioSetResult<Port>;
+  static_assert(std::is_void_v<Result> || kGpioSetReportsStatus<Port>,
+                "bno08x: the port's GpioSet(pin, signal) must return bool (true = pin driven, "
+                "false = GPIO error), or void for a port that never reports errors");
+  if constexpr (std::is_void_v<Result>) {
+    port.GpioSet(pin, signal);
+    return true;
+  } else {
+    return static_cast<bool>(port.GpioSet(pin, signal));
+  }
+}
+
+/// @cond BNO08X_INTERNAL
+template <typename Port, typename = void>
+struct HasI2cAddressHooks : std::false_type {};
+
+template <typename Port>
+struct HasI2cAddressHooks<
+    Port, std::void_t<decltype(std::declval<Port&>().GetI2cAddress()),
+                      decltype(std::declval<Port&>().SetI2cAddress(std::declval<uint8_t>()))>>
+    : std::true_type {};
+/// @endcond
+
+/**
+ * @brief True when the port provides the optional I2C address hooks.
+ *
+ * `uint8_t GetI2cAddress()` returns the 7-bit address the port talks to and
+ * `bool SetI2cAddress(uint8_t)` changes it (also while the bus is open). The
+ * driver uses them to reach the bootloader at 0x28 / 0x29 during a firmware
+ * update over I2C (datasheet 1000-3927 section 1.4) and to restore the
+ * application address afterwards.
+ */
+template <typename Port>
+inline constexpr bool kHasI2cAddressHooks = HasI2cAddressHooks<Port>::value;
+
+} // namespace detail
+
 /**
  * @brief CRTP base class for BNO08x communication interfaces.
  *
@@ -87,6 +148,15 @@ enum class GpioSignal : uint8_t {
  *
  * @note  Implementations must provide **all** listed methods. The `GpioSet()`
  *        method may be a no-op for pins that are not wired on the board.
+ *
+ * Optional hooks, detected at compile time (the base class has no default for
+ * them, so a port without them keeps compiling):
+ * - `uint8_t GetI2cAddress()` and `bool SetI2cAddress(uint8_t addr7)`: I2C
+ *   ports should provide both. During a firmware update the driver switches
+ *   the port to the bootloader address (0x28 with SA0 low, 0x29 with SA0
+ *   high; datasheet section 1.4) and restores the application address
+ *   (0x4A / 0x4B, figure 1-12) afterwards. Without them the port itself must
+ *   talk to the bootloader address during DFU.
  */
 template <typename Derived>
 class CommInterface {
@@ -131,6 +201,9 @@ public:
    *
    * Called during driver shutdown. Implementations should de-initialise the
    * peripheral and release any allocated resources.
+   *
+   * Returns `void` on purpose: the vendor `sh2_Hal_t::close` hook is `void`,
+   * and the driver has nothing to recover on teardown. Log failures in the port.
    */
   void Close() noexcept {
     static_cast<Derived*>(this)->Close();
@@ -181,7 +254,8 @@ public:
   /**
    * @brief Block for a specified duration.
    *
-   * Used by the driver for reset timing and post-DFU delays.
+   * Used by the driver for reset timing and post-DFU delays. Returns `void`:
+   * a delay has no failure the driver could act on.
    *
    * @param[in] ms  Delay duration in milliseconds.
    */
@@ -218,11 +292,17 @@ public:
    * The bus implementation is responsible for mapping ACTIVE/INACTIVE to
    * the correct physical level based on the pin's active-level design.
    *
+   * The port's GpioSet() returns `bool`: `true` when the pin was driven (or
+   * is not wired, so there is nothing to drive), `false` on a GPIO error.
+   * A port written for the earlier contract, with a `void` GpioSet(), still
+   * compiles and is treated as never failing (see detail::GpioSet()).
+   *
    * @param[in] pin     Which control pin to drive.
    * @param[in] signal  ACTIVE to assert the pin function, INACTIVE to deassert.
+   * @return  `true` on success, `false` if the port reported a GPIO error.
    */
-  void GpioSet(CtrlPin pin, GpioSignal signal) noexcept {
-    static_cast<Derived*>(this)->GpioSet(pin, signal);
+  bool GpioSet(CtrlPin pin, GpioSignal signal) noexcept {
+    return detail::GpioSet(*static_cast<Derived*>(this), pin, signal);
   }
 
   /**
@@ -231,9 +311,10 @@ public:
    * Convenience wrapper for `GpioSet(pin, GpioSignal::ACTIVE)`.
    *
    * @param[in] pin  Which control pin to assert.
+   * @return  `true` on success, `false` if the port reported a GPIO error.
    */
-  void GpioSetActive(CtrlPin pin) noexcept {
-    GpioSet(pin, GpioSignal::ACTIVE);
+  bool GpioSetActive(CtrlPin pin) noexcept {
+    return GpioSet(pin, GpioSignal::ACTIVE);
   }
 
   /**
@@ -242,9 +323,10 @@ public:
    * Convenience wrapper for `GpioSet(pin, GpioSignal::INACTIVE)`.
    *
    * @param[in] pin  Which control pin to deassert.
+   * @return  `true` on success, `false` if the port reported a GPIO error.
    */
-  void GpioSetInactive(CtrlPin pin) noexcept {
-    GpioSet(pin, GpioSignal::INACTIVE);
+  bool GpioSetInactive(CtrlPin pin) noexcept {
+    return GpioSet(pin, GpioSignal::INACTIVE);
   }
 
   /// @}

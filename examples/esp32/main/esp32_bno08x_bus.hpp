@@ -286,14 +286,19 @@ public:
    *
    * @param pin   Which control pin to drive
    * @param signal ACTIVE to assert, INACTIVE to deassert
+   * @return false if ESP-IDF reported a GPIO error (an unwired pin is not an error)
    */
-  void GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
+  bool GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
     switch (pin) {
       case bno08x::CtrlPin::RSTN:
         if (config_.rst_pin != GPIO_NUM_NC) {
           // RSTN is active-low: ACTIVE → drive LOW (assert reset)
-          gpio_set_level(config_.rst_pin,
-                         signal == bno08x::GpioSignal::ACTIVE ? 0 : 1);
+          const esp_err_t ret =
+              gpio_set_level(config_.rst_pin, signal == bno08x::GpioSignal::ACTIVE ? 0 : 1);
+          if (ret != ESP_OK) {
+            ESP_LOGE(TAG_I2C, "RSTN write failed: %s", esp_err_to_name(ret));
+            return false;
+          }
         }
         break;
       case bno08x::CtrlPin::BOOTN:
@@ -302,6 +307,45 @@ public:
       case bno08x::CtrlPin::PS1:
         break; // Not wired in this I2C implementation
     }
+    return true;
+  }
+
+  // ── Optional I2C address hooks (firmware update) ──────────────────────
+
+  /**
+   * @brief 7-bit address this port talks to (optional CommInterface hook).
+   */
+  uint8_t GetI2cAddress() const noexcept {
+    return config_.device_address;
+  }
+
+  /**
+   * @brief Change the 7-bit device address (optional CommInterface hook).
+   *
+   * The driver calls this around a firmware update: the BNO08x bootloader
+   * answers at 0x28 / 0x29 instead of 0x4A / 0x4B (datasheet section 1.4).
+   * When the bus is open the cached device handle is replaced.
+   *
+   * @return true on success, false if ESP-IDF could not add the device
+   */
+  bool SetI2cAddress(uint8_t addr7) noexcept {
+    if (!initialized_) {
+      config_.device_address = addr7; // applied by the next Open()
+      return true;
+    }
+    if (addr7 == config_.device_address && dev_handle_ != nullptr) {
+      return true;
+    }
+    config_.device_address = addr7;
+    if (dev_handle_ != nullptr) {
+      i2c_master_bus_rm_device(dev_handle_);
+      dev_handle_ = nullptr;
+    }
+    if (!addDevice()) {
+      return false;
+    }
+    ESP_LOGI(TAG_I2C, "Device address now 0x%02X", addr7);
+    return true;
   }
 
   // ── Lifecycle management ───────────────────────────────────────────────
@@ -351,21 +395,7 @@ public:
     }
 
     // Step 3: Create and cache device handle for the BNO08x address
-    // Note: scl_wait_us sets maximum clock stretching timeout per byte
-    // BNO08x can stretch clock when it has no data, so we allow up to 50ms
-    // This must be long enough for the device to prepare data or timeout gracefully
-    i2c_device_config_t dev_config = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = config_.device_address,
-        .scl_speed_hz = config_.frequency,
-        .scl_wait_us = 50000, // 50ms max clock stretching per byte (BNO08x datasheet requirement)
-        .flags = {},
-    };
-
-    ret = i2c_master_bus_add_device(bus_handle_, &dev_config, &dev_handle_);
-    if (ret != ESP_OK) {
-      ESP_LOGE(TAG_I2C, "Failed to add device 0x%02X: %s", config_.device_address,
-               esp_err_to_name(ret));
+    if (!addDevice()) {
       i2c_del_master_bus(bus_handle_);
       bus_handle_ = nullptr;
       return false;
@@ -455,6 +485,32 @@ public:
   }
 
 private:
+  /**
+   * @brief Create and cache the device handle for config_.device_address
+   * @return true if successful, false otherwise
+   */
+  bool addDevice() noexcept {
+    // Note: scl_wait_us sets maximum clock stretching timeout per byte
+    // BNO08x can stretch clock when it has no data, so we allow up to 50ms
+    // This must be long enough for the device to prepare data or timeout gracefully
+    i2c_device_config_t dev_config = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = config_.device_address,
+        .scl_speed_hz = config_.frequency,
+        .scl_wait_us = 50000, // 50ms max clock stretching per byte (BNO08x datasheet requirement)
+        .flags = {},
+    };
+
+    esp_err_t ret = i2c_master_bus_add_device(bus_handle_, &dev_config, &dev_handle_);
+    if (ret != ESP_OK) {
+      ESP_LOGE(TAG_I2C, "Failed to add device 0x%02X: %s", config_.device_address,
+               esp_err_to_name(ret));
+      dev_handle_ = nullptr;
+      return false;
+    }
+    return true;
+  }
+
   I2CConfig config_;
   i2c_master_bus_handle_t bus_handle_;
   i2c_master_dev_handle_t dev_handle_; ///< Cached device handle (avoids add/rm per transaction)

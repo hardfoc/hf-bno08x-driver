@@ -14,7 +14,7 @@ bool platform_uart_open(uint32_t baud) noexcept; // 8 data bits, no parity, 1 st
 void platform_uart_close() noexcept;
 // Non-blocking: the number of bytes copied, 0 if none.
 int platform_uart_read(uint8_t* data, uint32_t len) noexcept;
-void platform_gpio_write(int gpio, bool level) noexcept;
+bool platform_gpio_write(int gpio, bool level) noexcept; // false on a GPIO error
 void platform_delay_ms(uint32_t ms) noexcept;
 uint32_t platform_micros() noexcept;
 
@@ -57,10 +57,11 @@ public:
     return platform_micros();
   }
 
-  void GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
+  bool GpioSet(bno08x::CtrlPin pin, bno08x::GpioSignal signal) noexcept {
     if (pin == bno08x::CtrlPin::RSTN) {
-      platform_gpio_write(kRstnGpio, signal != bno08x::GpioSignal::ACTIVE);
+      return platform_gpio_write(kRstnGpio, signal != bno08x::GpioSignal::ACTIVE);
     }
+    return true; // only NRST is wired
   }
 };
 // --8<-- [end:port]

@@ -28,7 +28,7 @@ def data():
             calls.append(name)
     comm = (ROOT / COMM).read_text()
     hooks = []
-    for name in re.findall(r"^\s+(?:return )?static_cast<Derived\*>\(this\)->(\w+)\(", comm, re.M):
+    for name in re.findall(r"^\s+(?:return )?(?:static_cast<Derived\*>\(this\)->|detail::)(\w+)\(", comm, re.M):
         if name not in hooks:
             hooks.append(name)
     return {

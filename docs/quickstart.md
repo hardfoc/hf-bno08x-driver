@@ -48,7 +48,8 @@ transfer again from the start. [Porting](porting.md) explains each method and sh
 
 What each step does:
 
-1. `HardwareReset()` holds NRST low for 2 ms and waits 50 ms. PS0, PS1, SA0 and BOOTN are sampled now.
+1. `HardwareReset()` holds NRST low for 2 ms and waits 94 ms for the hub to start (datasheet figure 6-8). PS0,
+   PS1, SA0 and BOOTN are sampled now.
 2. `Begin()` opens the port, starts the CEVA SH-2 library, waits for the hub's reset message and sends a
    reinitialise command. Nothing else works until it returns `true`.
 3. `EnableSensor()` asks the hub for a rotation vector every 10 ms (100 Hz).

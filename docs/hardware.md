@@ -39,10 +39,8 @@ PS1, PS0 and BOOTN are sampled at reset (datasheet figure 1-5). Strap them, or d
 | 1 | 0 | UART (SHTP) | UART | `UART` |
 | 1 | 1 | SPI | SPI | `SPI` |
 
-!!! warning "`SelectInterface()` swaps UART and UART-RVC"
-    In this release `SelectInterface(BNO085Interface::UART)` drives PS1 low and PS0 high, which selects UART-RVC,
-    and `SelectInterface(BNO085Interface::UARTRVC)` selects UART-SHTP. I2C and SPI are correct. Strap the pins in
-    hardware, or drive PS0 and PS1 from your own code with the table above.
+If your board wires PS0 and PS1 to GPIOs, `SelectInterface(iface)` drives them to the row of the table for
+`iface` (the enum value is the PS1:PS0 pair); call it before `HardwareReset()`.
 
 ## Bus settings
 
@@ -111,8 +109,8 @@ sequenceDiagram
 | Wake to H_INTN (SPI) | about 150 µs | figure 6-12 |
 
 Handle H_INTN within a tenth of your fastest report period: late responses starve the fusion processing and add
-errors. `HardwareReset()` waits 50 ms after releasing NRST; `Begin()` then waits up to 200 ms for the hub's reset
-message, which covers the 94 ms start-up.
+errors. `HardwareReset()` waits `RESET_STARTUP_MS` (94 ms: t1 at least 90 ms plus t2 about 4 ms) after releasing
+NRST, so the hub has finished its start-up before the first transfer.
 
 ## Power
 
@@ -135,19 +133,21 @@ Typical consumption, measured by CEVA over SPI at VDDIO 3 V and VDD 3.3 V: 0.39 
 - **I2C clock stretching.** A BNO085 polled with no data holds SCL low until it has some. Gate reads on H_INTN, and
   give your I2C peripheral a clock-stretch timeout longer than your slowest report period.
 - **UART needs a crystal.** UART-SHTP and UART-RVC do not work reliably on the internal oscillator.
-- **Bootloader address.** In the bootloader the I2C address moves to `0x28` / `0x29`; a port used for firmware
-  updates over I2C must switch address (see [Firmware update](dfu.md)).
+- **Bootloader address.** In the bootloader the I2C address moves to `0x28` / `0x29`; the driver switches a port
+  that has the I2C address hooks there for the transfer (see [Firmware update](dfu.md)).
 
 ## Evaluation setup
 
-The [ESP32 examples](examples.md) run on an ESP32-S3 with a BNO08x breakout over I2C:
+The [ESP32 examples](examples.md) run on an ESP32-S3 with a BNO08x breakout, over I2C unless noted:
 
 | Signal | ESP32-S3 GPIO |
 | --- | --- |
 | SDA, SCL | 4, 5 (400 kHz, address 0x4B first, then 0x4A) |
 | H_INTN | 17 |
 | NRST | 16 |
-| UART-RVC TX, RX | 21, 20 (the RVC example) |
+| SPI SCLK, MOSI, MISO, CS | 12, 11, 13, 10 (`spi_polling`; mode 3, 3 MHz) |
+| PS0/WAKE | 18 (`spi_polling`; PS1 strapped high) |
+| UART TX, RX | 21, 20 (`uart_shtp_polling` at 3 Mbit/s, PS1 high and PS0 low; `rvc_mode` at 115200, PS1 low and PS0 high) |
 
 The pin assignment lives in
 [`esp32_bno08x_test_config.hpp`](../examples/esp32/main/esp32_bno08x_test_config.hpp).
