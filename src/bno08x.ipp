@@ -918,6 +918,49 @@ bool BNO085<CommType>::dfuIsKnownPartNumber(const char* part) noexcept {
          std::strcmp(part, "1000-4148") == 0 || std::strcmp(part, "1000-4563") == 0;
 }
 
+template <typename CommType>
+bool BNO085<CommType>::IsPlaceholderFirmware(const HcBin_t& fw) noexcept {
+  // The placeholder's functions are static to firmware-bno.c, so an HcBin_t that uses its data
+  // function is the placeholder or a copy of it.
+  return &fw == &firmware || (fw.getAppData != nullptr && fw.getAppData == firmware.getAppData);
+}
+
+/**
+ * @brief Check an opened firmware image before the DFU touches the bus or the SH-2 session.
+ * @param[out] appLen The image's application length.
+ * @return SH2_OK, or SH2_ERR_BAD_PARAM for an image that must not be sent.
+ */
+template <typename CommType>
+int BNO085<CommType>::dfuCheckImage(const HcBin_t& fw, const DfuOptions& options,
+                                    uint32_t& appLen) noexcept {
+  const char* meta = nullptr;
+  if (options.requireFormatMatch) {
+    const char* expected_format = options.requiredFormat ? options.requiredFormat : "BNO_V1";
+    meta = fw.getMeta("FW-Format");
+    if (!meta || std::strcmp(meta, expected_format) != 0) {
+      return SH2_ERR_BAD_PARAM;
+    }
+  }
+  if (options.requirePartNumber) {
+    meta = fw.getMeta("SW-Part-Number");
+    if (!meta) {
+      return SH2_ERR_BAD_PARAM;
+    }
+    if (options.requiredPartNumber) {
+      if (std::strcmp(meta, options.requiredPartNumber) != 0) {
+        return SH2_ERR_BAD_PARAM;
+      }
+    } else if (!dfuIsKnownPartNumber(meta)) {
+      return SH2_ERR_BAD_PARAM;
+    }
+  }
+  appLen = fw.getAppLen();
+  if (appLen < 1024) { // an empty image included
+    return SH2_ERR_BAD_PARAM;
+  }
+  return SH2_OK;
+}
+
 /** @brief Write a 32-bit value in big-endian byte order. */
 template <typename CommType>
 void BNO085<CommType>::dfuWrite32be(uint8_t* buf, uint32_t value) noexcept {
@@ -1131,22 +1174,44 @@ int BNO085<CommType>::DfuWithOptions(const HcBin_t& fw, const DfuOptions& option
     last_error_ = SH2_ERR_OP_IN_PROGRESS;
     return SH2_ERR_OP_IN_PROGRESS;
   }
+  // Refuse a bad image (the placeholder, an empty or malformed one) before anything changes: the
+  // SH-2 session keeps running and nothing goes out on the bus. The image stays open for the
+  // transfer (MemoryFirmware can be opened once per hcbin() call).
+  if (fw.open == nullptr || fw.close == nullptr || fw.getMeta == nullptr ||
+      fw.getAppLen == nullptr || fw.getPacketLen == nullptr || fw.getAppData == nullptr ||
+      IsPlaceholderFirmware(fw)) {
+    last_error_ = SH2_ERR_BAD_PARAM;
+    return SH2_ERR_BAD_PARAM;
+  }
+  if (fw.open() != 0) {
+    last_error_ = SH2_ERR;
+    return SH2_ERR;
+  }
+  {
+    uint32_t checked_len = 0;
+    const int image_status = dfuCheckImage(fw, options, checked_len);
+    if (image_status != SH2_OK) {
+      (void)fw.close();
+      last_error_ = image_status;
+      return image_status;
+    }
+  }
   if (state_ == BNO085DriverState::Sh2Active) {
     // DFU uses the same transport HAL and must not race an active SH-2 session.
     Close();
   }
   if (state_ != BNO085DriverState::Closed) {
+    (void)fw.close();
     last_error_ = SH2_ERR_OP_IN_PROGRESS;
     return SH2_ERR_OP_IN_PROGRESS;
   }
   state_ = BNO085DriverState::DfuInProgress;
   prepareHalWrapper();
 
-  int rc, status = SH2_OK;
+  int status = SH2_OK;
   uint32_t app_len = 0;
   uint8_t packet_len = 0;
   uint32_t offset = 0;
-  const char* meta = nullptr;
   bool fw_opened = false;
   bool hal_opened = false;
   uint8_t app_address = 0;
@@ -1154,44 +1219,9 @@ int BNO085<CommType>::DfuWithOptions(const HcBin_t& fw, const DfuOptions& option
   uint8_t dfu_buff[DFU_MAX_PACKET_LEN + 2];
   sh2_Hal_t* hal = halWrapper_.asHal();
 
-  rc = fw.open();
-  if (rc != 0) {
-    status = SH2_ERR;
-    goto dfu_end;
-  }
+  // Opened and checked above, before the session was closed.
   fw_opened = true;
-
-  if (options.requireFormatMatch) {
-    const char* expected_format = options.requiredFormat ? options.requiredFormat : "BNO_V1";
-    meta = fw.getMeta("FW-Format");
-    if (!meta || std::strcmp(meta, expected_format) != 0) {
-      status = SH2_ERR_BAD_PARAM;
-      goto dfu_close;
-    }
-  }
-
-  if (options.requirePartNumber) {
-    meta = fw.getMeta("SW-Part-Number");
-    if (!meta) {
-      status = SH2_ERR_BAD_PARAM;
-      goto dfu_close;
-    }
-    if (options.requiredPartNumber) {
-      if (std::strcmp(meta, options.requiredPartNumber) != 0) {
-        status = SH2_ERR_BAD_PARAM;
-        goto dfu_close;
-      }
-    } else if (!dfuIsKnownPartNumber(meta)) {
-      status = SH2_ERR_BAD_PARAM;
-      goto dfu_close;
-    }
-  }
-
   app_len = fw.getAppLen();
-  if (app_len < 1024) {
-    status = SH2_ERR_BAD_PARAM;
-    goto dfu_close;
-  }
 
   packet_len = fw.getPacketLen();
   if (options.packetLenOverride != 0) {
@@ -1255,7 +1285,6 @@ dfu_close:
   if (address_switched && !dfuRestoreAppAddress(app_address) && status == SH2_OK)
     status = SH2_ERR_IO;
 
-dfu_end:
   state_ = BNO085DriverState::Closed;
   last_error_ = status;
   return status;

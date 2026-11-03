@@ -46,11 +46,14 @@ inline std::atomic<const void*>& Sh2SessionOwner() noexcept {
 } // namespace bno08x::detail
 
 /**
- * @brief Default compiled-in firmware image for DFU.
+ * @brief Placeholder firmware image (`firmware-bno.c`, "Dummy Firmware Image").
  *
- * Defined in `firmware-bno.c`. Contains a stub by default; replace with a
- * real BNO08x firmware binary for production DFU. Alternatively, use
- * MemoryFirmware for runtime-provided images.
+ * 64 zero bytes with the metadata of a real release: it is not firmware and
+ * must never reach the hub's bootloader. Dfu(), DfuWithOptions() and the
+ * memory variants refuse it (and any copy of it) with `SH2_ERR_BAD_PARAM`
+ * before touching the bus. Pass a real image, for example through
+ * MemoryFirmware or DfuFromMemory(). Kept only so code that names the symbol
+ * still links; IsPlaceholderFirmware() tells it apart.
  */
 extern const HcBin_t firmware;
 
@@ -684,14 +687,26 @@ public:
    * path (`SH2_ERR_IO` if a switch fails, `SH2_ERR_BAD_PARAM` if the current
    * address is not a BNO08x address).
    *
+   * The image is checked before the driver touches the bus or an active
+   * SH-2 session: `SH2_ERR_BAD_PARAM` (and nothing sent, the session left
+   * running) for the compiled-in placeholder `firmware` or a copy of it, an
+   * HcBin_t with a missing function, an image shorter than 1024 bytes (an
+   * empty one included), a wrong `FW-Format` or an unknown part number.
+   *
    * @pre  Interface type must NOT be UARTRVC.
-   * @param[in] fw  Firmware image. Defaults to the compiled-in stub from
-   *                `firmware-bno.c`. Use MemoryFirmware for runtime images.
+   * @param[in] fw  Firmware image. Required: there is no default. Use
+   *                MemoryFirmware (or DfuFromMemory()) for an image in memory.
    * @return  `SH2_OK` (0) on success, or a negative SH-2 error code.
    *
    * @see MemoryFirmware  For loading firmware from memory at runtime.
    */
-  int Dfu(const HcBin_t& fw = firmware) noexcept;
+  int Dfu(const HcBin_t& fw) noexcept;
+
+  /**
+   * @brief True when @p fw is the compiled-in placeholder image (`firmware`
+   * from `firmware-bno.c`) or a copy of it. The DFU calls refuse such images.
+   */
+  [[nodiscard]] static bool IsPlaceholderFirmware(const HcBin_t& fw) noexcept;
 
   /**
    * @brief Perform DFU with explicit validation and transfer options.
@@ -862,6 +877,8 @@ private:
 
   static void dfuWrite32be(uint8_t* buf, uint32_t value) noexcept;           ///< @private
   static bool dfuIsKnownPartNumber(const char* part) noexcept;               ///< @private
+  static int dfuCheckImage(const HcBin_t& fw, const DfuOptions& options,
+                           uint32_t& appLen) noexcept;                       ///< @private
   static void dfuAppendCrc(uint8_t* packet, uint8_t len) noexcept;           ///< @private
   int dfuSend(uint8_t* p_data, uint32_t len) noexcept;                       ///< @private
   int dfuSendAppSize(uint8_t* dfu_buff, uint32_t app_size) noexcept;         ///< @private
