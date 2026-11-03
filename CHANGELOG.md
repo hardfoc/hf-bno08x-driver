@@ -8,6 +8,17 @@ code that used the affected API; together they call for a major version bump at 
 
 The build settings carry version 1.0.0; no release has been tagged yet.
 
+### Breaking
+
+- `Dfu()` has no default image any more: it defaulted to the compiled-in `firmware` object from
+  `src/dfu/firmware-bno.c`, a 64-byte "Dummy Firmware Image" placeholder. Callers pass the image
+  (`Dfu(image)`, `DfuWithOptions()`, `DfuFromMemory()`); `imu.Dfu()` no longer compiles. **BREAKING**.
+- Every DFU call refuses the placeholder and any copy of it (new `IsPlaceholderFirmware()`), an `HcBin_t` with a
+  missing function (it was called through the null pointer), an image shorter than 1024 bytes (empty included),
+  a wrong `FW-Format` and an unknown part number with `SH2_ERR_BAD_PARAM`. These checks now run before the driver
+  changes anything: a refused image leaves a running SH-2 session open (it used to be closed first) and sends
+  nothing on the bus.
+
 ### Added
 
 - SPI and UART-SHTP reference ports for ESP-IDF, `examples/esp32/main/esp32_bno08x_spi_bus.hpp` (mode 3 at
