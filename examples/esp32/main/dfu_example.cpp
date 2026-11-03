@@ -4,7 +4,7 @@
  *
  * This example demonstrates:
  * - Entering BNO08x bootloader mode via BOOTN pin
- * - Performing a firmware update using BNO085::Dfu()
+ * - BNO085::Dfu() refusing the compiled-in placeholder image
  * - Using MemoryFirmware for runtime-provided firmware images
  *
  * IMPORTANT HARDWARE NOTES:
@@ -12,8 +12,8 @@
  * - The default esp32_bno08x_bus.hpp does NOT wire BOOTN. To use DFU,
  *   you must modify SetBoot() in esp32_bno08x_bus.hpp to drive a real GPIO.
  * - The sensor must be reset while BOOTN is held low to enter bootloader mode.
- * - The default firmware stub (firmware-bno.c) contains dummy data. Replace
- *   it with a real firmware binary for actual updates.
+ * - Dfu() needs an image from the caller. The compiled-in firmware-bno.c is a
+ *   placeholder that the driver refuses; pass a real image from CEVA.
  *
  * @note This example runs independently on an I2C bus that only communicates
  *       with the BNO08x device. The I2C bus setup (GPIO4 SDA, GPIO5 SCL)
@@ -112,37 +112,29 @@ extern "C" void app_main(void) {
   ESP_LOGI(TAG, "--- DFU API Demonstration ---");
   ESP_LOGI(TAG, "");
 
-  // ---- Method 1: Using the built-in firmware stub ----
+  // ---- Method 1: The compiled-in placeholder is refused ----
   //
-  // BNO085::Dfu() uses the default `firmware` object from firmware-bno.c.
-  // In production, replace firmware-bno.c with the actual firmware binary.
+  // BNO085::Dfu() has no default image: the caller passes one. The `firmware`
+  // object from firmware-bno.c is a 64-byte placeholder ("Dummy Firmware
+  // Image"); every DFU call refuses it with SH2_ERR_BAD_PARAM before touching
+  // the bus, so the sensor stays in its running session.
   //
-  // The DFU flow is:
+  // The DFU flow with a real image is:
   //   1. Hold BOOTN low
   //   2. Reset the sensor (RSTN pulse)
   //   3. Release BOOTN -> sensor enters bootloader
-  //   4. Call imu->Dfu() to transfer firmware
+  //   4. Call imu->Dfu(image) to transfer firmware
   //   5. Sensor reboots with new firmware
 
-  ESP_LOGI(TAG, "Method 1: DFU with built-in firmware stub");
-  ESP_LOGI(TAG, "  Step 1: Enter bootloader mode (BOOTN low + reset)");
+  ESP_LOGI(TAG, "Method 1: the placeholder image is refused");
+  ESP_LOGI(TAG, "  IsPlaceholderFirmware(firmware) = %s",
+           BNO085<Esp32Bno08xI2cBus>::IsPlaceholderFirmware(firmware) ? "true" : "false");
 
-  // Enter bootloader mode
-  imu->SetBootPin(true);  // Drive BOOTN low (active-low)
-  imu->HardwareReset(10); // Reset while BOOTN is held low
-  imu->SetBootPin(false); // Release BOOTN
-
-  ESP_LOGI(TAG, "  Step 2: Starting DFU transfer...");
-  ESP_LOGI(TAG, "  (Using default firmware stub - will fail with dummy data, this is expected)");
-
-  int status = imu->Dfu(); // Uses default `firmware` from firmware-bno.c
-
-  if (status == 0) {
-    ESP_LOGI(TAG, "  DFU completed successfully!");
+  int status = imu->Dfu(firmware); // refused: nothing is sent, the bootloader is not entered
+  if (status == SH2_ERR_BAD_PARAM) {
+    ESP_LOGI(TAG, "  Dfu(firmware) refused the placeholder (SH2_ERR_BAD_PARAM), as it must");
   } else {
-    ESP_LOGW(TAG, "  DFU returned status: %d (expected with stub firmware)", status);
-    ESP_LOGI(TAG, "  This is normal when using the dummy firmware stub.");
-    ESP_LOGI(TAG, "  Replace firmware-bno.c with a real firmware binary for actual updates.");
+    ESP_LOGE(TAG, "  Dfu(firmware) returned %d; the placeholder must be refused", status);
   }
 
   // ---- Method 2: Using MemoryFirmware for runtime-provided images ----
