@@ -1065,7 +1065,9 @@ it, keep the supply stable during the transfer, and check that the image's part 
   <code>BootloaderI2cAddress()</code> of its address (same SA0 bit) for the transfer and restore the address afterwards,
   also when the transfer fails. A port without the hooks must talk to the bootloader address itself.</li>
 <li><strong>A vendor image.</strong> CEVA supplies BNO08x firmware as an HcBin image with metadata (<code>FW-Format</code>, <code>SW-Part-Number</code>).
-  The image compiled in from <code>src/dfu/firmware-bno.c</code> is a 64-byte stub that the driver refuses.</li>
+  There is no default image: every DFU call takes the image from you. The <code>firmware</code> object compiled in from
+  <code>src/dfu/firmware-bno.c</code> is a 64-byte placeholder; the driver refuses it, and any copy of it, with
+  <code>SH2_ERR_BAD_PARAM</code> (<code>IsPlaceholderFirmware()</code> tells it apart).</li>
 </ul>
 <h2 id="update-from-memory">Update from memory<a class="headerlink" href="#update-from-memory" title="Permanent link">&para;</a></h2>
 <div class="language-cpp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">int</span><span class="w"> </span><span class="nf">update_firmware</span><span class="p">(</span><span class="n">MyI2c</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bus</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -1096,8 +1098,10 @@ it, keep the supply stable during the transfer, and check that the image's part 
 <ol>
 <li><strong>Enter the bootloader.</strong> <code>EnterBootloader(10, 50)</code>: close any open session, open the port, assert BOOTN, hold
    NRST low 10 ms, wait 94 ms (<code>RESET_STARTUP_MS</code>), release BOOTN, wait 50 ms.</li>
-<li><strong>Check the image.</strong> <code>FW-Format</code> must be <code>BNO_V1</code> and <code>SW-Part-Number</code> a known part (or the one you require),
-   and the image at least 1024 bytes; otherwise <code>SH2_ERR_BAD_PARAM</code> before anything is sent.</li>
+<li><strong>Check the image.</strong> It must not be the placeholder, its <code>HcBin_t</code> must have every function, <code>FW-Format</code> must
+   be <code>BNO_V1</code> and <code>SW-Part-Number</code> a known part (or the one you require), and the image at least 1024 bytes (an
+   empty image fails here); otherwise <code>SH2_ERR_BAD_PARAM</code> before anything is sent and before a running SH-2
+   session is closed.</li>
 <li><strong>Send the size.</strong> The application length as 4 bytes big-endian plus CRC-16, then the packet length (1 to 64
    bytes) plus CRC-16. The bootloader acknowledges each with <code>s</code>.</li>
 <li><strong>Send the image.</strong> Packets of up to 64 bytes, each with a CRC-16 (CCITT, polynomial 0x1021, initial value
@@ -1150,7 +1154,7 @@ it, keep the supply stable during the transfer, and check that the image's part 
 </table>
 <p><code>DfuMemoryImage</code> describes a raw image in memory: <code>data</code>, <code>length</code>, <code>format</code>, <code>partNumber</code> and an optional
 <code>preferredPacketLen</code>. For an image you stream from storage, implement the <code>HcBin_t</code> function table
-(<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/src/dfu/HcBin.h"><code>src/dfu/HcBin.h</code></a>) and call <code>DfuWithOptions(image, options)</code> between the bootloader calls.</p>
+(<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/src/dfu/HcBin.h"><code>src/dfu/HcBin.h</code></a>) and call <code>DfuWithOptions(image, options)</code> between the bootloader calls.</p>
 <h2 id="step-by-step">Step by step<a class="headerlink" href="#step-by-step" title="Permanent link">&para;</a></h2>
 <p>Call the pieces yourself when you need to do something between them:</p>
 <table>
@@ -1171,7 +1175,7 @@ it, keep the supply stable during the transfer, and check that the image's part 
 </tr>
 <tr>
 <td><code>DfuWithOptions(hcbin, options)</code> / <code>Dfu(hcbin)</code></td>
-<td>Steps 2 to 4 from any <code>HcBin_t</code>; <code>Dfu()</code> uses the default options</td>
+<td>Steps 2 to 4 from any <code>HcBin_t</code> you pass (there is no default image); <code>Dfu()</code> uses the default options</td>
 </tr>
 <tr>
 <td><code>ExitBootloaderAndReboot(resetLowMs = 2, settleMs = 100)</code></td>
@@ -1180,7 +1184,8 @@ it, keep the supply stable during the transfer, and check that the image's part 
 </tbody>
 </table>
 <p>During the transfer <code>GetState()</code> is <code>DfuInProgress</code> and <code>Close()</code> is refused. A transfer that starts while an SH-2
-session is open closes the session first.</p>
+session is open closes the session first, once the image has passed the checks of step 2; a refused image leaves
+the session running.</p>
 <h2 id="next">Next<a class="headerlink" href="#next" title="Permanent link">&para;</a></h2>
 <p>The <a href="../examples/"><code>dfu_update</code> and <code>dfu_workflow_test</code></a> ESP32 apps run this on hardware;
 <a href="../hardware/#control-pins">Hardware</a> has the BOOTN and NRST wiring.</p>

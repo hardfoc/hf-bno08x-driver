@@ -924,13 +924,13 @@ committed figure no longer matches the code. Each figure below lists the files i
 <details class="hf-figure-desc">
 <summary>Figure description and sources</summary>
 <p>From top to bottom. Your application talks to one BNO085<Comm> object, whose public calls are listed from inc/bno08x.hpp. In SH-2 mode the core hands every transfer to the CEVA SH-2 and SHTP library (the src/sh2 submodule); in UART-RVC mode it parses the 19-byte frames itself; firmware updates use the bootloader protocol in the core. Both paths end in the communication interface (bno08x::CommInterface in inc/bno08x_comm_interface.hpp), a CRTP base whose methods your platform port implements: move bytes, report data-ready, wait, keep time and drive the control pins. Below it is the sensor hub.</p>
-<p>Drawn from: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> <code>BNO085 public members</code>; <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a> <code>CommInterface</code>; figure module <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
+<p>Drawn from: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> <code>BNO085 public members</code>; <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a> <code>CommInterface</code>; figure module <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
 </details>
-<p>Figure module: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a></p>
+<p>Figure module: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a></p>
 <p>Drawn from:</p>
 <ul>
-<li><code>BNO085 public members</code> in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a></li>
-<li><code>CommInterface</code> in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a></li>
+<li><code>BNO085 public members</code> in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a></li>
+<li><code>CommInterface</code> in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a></li>
 </ul>
 
 

@@ -889,6 +889,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#breaking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Breaking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#added" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -981,6 +992,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#breaking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Breaking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#added" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1048,6 +1070,17 @@
 affected API.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <p>The build settings carry version 1.0.0; no release has been tagged yet.</p>
+<h3 id="breaking">Breaking<a class="headerlink" href="#breaking" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>Dfu()</code> has no default image any more: it defaulted to the compiled-in <code>firmware</code> object from
+  <code>src/dfu/firmware-bno.c</code>, a 64-byte "Dummy Firmware Image" placeholder. Callers pass the image
+  (<code>Dfu(image)</code>, <code>DfuWithOptions()</code>, <code>DfuFromMemory()</code>); <code>imu.Dfu()</code> no longer compiles. <strong>BREAKING</strong>.</li>
+<li>Every DFU call refuses the placeholder and any copy of it (new <code>IsPlaceholderFirmware()</code>), an <code>HcBin_t</code> with a
+  missing function (it was called through the null pointer), an image shorter than 1024 bytes (empty included),
+  a wrong <code>FW-Format</code> and an unknown part number with <code>SH2_ERR_BAD_PARAM</code>. These checks now run before the driver
+  changes anything: a refused image leaves a running SH-2 session open (it used to be closed first) and sends
+  nothing on the bus.</li>
+</ul>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
 <li>SPI and UART-SHTP reference ports for ESP-IDF, <code>examples/esp32/main/esp32_bno08x_spi_bus.hpp</code> (mode 3 at

@@ -1,7 +1,0 @@
-<map id="inc/bno08x_shtp_uart.hpp" name="inc/bno08x_shtp_uart.hpp">
-<area shape="rect" id="Node000001" title="Portable framing for SHTP over UART (UART&#45;SHTP mode, PS1 = 1, PS0 = 0)." alt="" coords="5,5,195,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="18,79,89,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,32,71,69,66,66,90,30"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="113,79,180,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="110,30,134,66,129,69,105,32"/>
-</map>

@@ -1172,7 +1172,7 @@ and a CMake package that exports the target <code>hf::bno08x</code>:</p>
 consumer against a fresh install (<a href="../testing/">Testing and CI</a>).</p>
 <h2 id="esp-idf">ESP-IDF<a class="headerlink" href="#esp-idf" title="Permanent link">&para;</a></h2>
 <p>The ESP-IDF component wrapper is
-<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/</code></a>. Copy that folder
+<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/</code></a>. Copy that folder
 into your project's <code>components/</code> (or point <code>EXTRA_COMPONENT_DIRS</code> at it) and set the <code>HF_BNO08X_ROOT</code> cache
 variable to the driver checkout; the wrapper stops with a clear message when the path is wrong. Your component
 then declares <code>REQUIRES hf_bno08x</code>. The wrapper compiles the same sources and requires the <code>driver</code> and
@@ -1189,17 +1189,17 @@ then declares <code>REQUIRES hf_bno08x</code>. The wrapper compiles the same sou
 <tbody>
 <tr>
 <td>Settings</td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/cmake/hf_bno08x_build_settings.cmake"><code>cmake/hf_bno08x_build_settings.cmake</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/cmake/hf_bno08x_build_settings.cmake"><code>cmake/hf_bno08x_build_settings.cmake</code></a></td>
 <td>Sources, include directories, version: the single source of truth</td>
 </tr>
 <tr>
 <td>Library</td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
 <td>Static library for host builds, install rules and CI</td>
 </tr>
 <tr>
 <td>ESP-IDF</td>
-<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/components/hf_bno08x/CMakeLists.txt"><code>examples/esp32/components/hf_bno08x/CMakeLists.txt</code></a></td>
 <td>IDF component wrapper over the same settings</td>
 </tr>
 </tbody>

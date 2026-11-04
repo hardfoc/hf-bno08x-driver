@@ -1193,7 +1193,7 @@
 <h1 id="porting">Porting<a class="headerlink" href="#porting" title="Permanent link">&para;</a></h1>
 <p>Run the driver on a new MCU by writing one class: the communication interface for your bus.</p>
 <p>The driver never calls your SDK directly. It calls nine methods on a class you derive from
-<code>bno08x::CommInterface&lt;Self&gt;</code> (in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a>). The base
+<code>bno08x::CommInterface&lt;Self&gt;</code> (in <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a>). The base
 class uses CRTP: the calls are resolved at compile time, so there are no virtual functions and no vtable.</p>
 <figure class="hf-figure">
 <img src="../diagrams/driver-layers.svg#only-light" alt="Layer diagram: the application calls the hardware-agnostic BNO085 driver, which uses the CEVA SH-2 library or its own UART-RVC parser, then the CRTP communication interface, which calls the platform port you write, which drives the I2C, SPI or UART bus and the control pins of the BNO08x." width="1200" height="1097"><img src="../diagrams/driver-layers.dark.svg#only-dark" alt="Layer diagram: the application calls the hardware-agnostic BNO085 driver, which uses the CEVA SH-2 library or its own UART-RVC parser, then the CRTP communication interface, which calls the platform port you write, which drives the I2C, SPI or UART bus and the control pins of the BNO08x." width="1200" height="1097">
@@ -1203,7 +1203,7 @@ class uses CRTP: the calls are resolved at compile time, so there are no virtual
 <details class="hf-figure-desc">
 <summary>Figure description and sources</summary>
 <p>From top to bottom. Your application talks to one BNO085<Comm> object, whose public calls are listed from inc/bno08x.hpp. In SH-2 mode the core hands every transfer to the CEVA SH-2 and SHTP library (the src/sh2 submodule); in UART-RVC mode it parses the 19-byte frames itself; firmware updates use the bootloader protocol in the core. Both paths end in the communication interface (bno08x::CommInterface in inc/bno08x_comm_interface.hpp), a CRTP base whose methods your platform port implements: move bytes, report data-ready, wait, keep time and drive the control pins. Below it is the sensor hub.</p>
-<p>Drawn from: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> <code>BNO085 public members</code>; <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a> <code>CommInterface</code>; figure module <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
+<p>Drawn from: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x.hpp"><code>inc/bno08x.hpp</code></a> <code>BNO085 public members</code>; <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x_comm_interface.hpp"><code>inc/bno08x_comm_interface.hpp</code></a> <code>CommInterface</code>; figure module <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
 </details>
 <h2 id="what-you-implement">What you implement<a class="headerlink" href="#what-you-implement" title="Permanent link">&para;</a></h2>
 <table>
@@ -1429,8 +1429,8 @@ driver has nothing to recover when either goes wrong, so log it in the port.</p>
 buffer of a few frames (19 bytes each, one every 10 ms) so nothing is lost between calls.</p>
 <h2 id="spi-and-uart-shtp-ports">SPI and UART-SHTP ports<a class="headerlink" href="#spi-and-uart-shtp-ports" title="Permanent link">&para;</a></h2>
 <p>Report <code>SPI</code> or <code>UART</code> from <code>GetInterfaceType()</code> and keep the <code>Read()</code> contract (one complete SHTP transfer, or
-0). Reference ports for ESP-IDF: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/main/esp32_bno08x_spi_bus.hpp"><code>esp32_bno08x_spi_bus.hpp</code></a>
-and <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/main/esp32_bno08x_uart_bus.hpp"><code>esp32_bno08x_uart_bus.hpp</code></a>, run by the <code>spi_polling</code> and
+0). Reference ports for ESP-IDF: <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/main/esp32_bno08x_spi_bus.hpp"><code>esp32_bno08x_spi_bus.hpp</code></a>
+and <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/main/esp32_bno08x_uart_bus.hpp"><code>esp32_bno08x_uart_bus.hpp</code></a>, run by the <code>spi_polling</code> and
 <code>uart_shtp_polling</code> <a href="../examples/">examples</a>. Both implement SH-2 only: the bootloader talks its own byte protocol
 on these buses (no SHTP framing), which the reference ports do not switch to, so run firmware updates over I2C
 with them.</p>
@@ -1455,7 +1455,7 @@ with them.</p>
   and <code>0x7D</code> sent as <code>0x7D, byte ^ 0x20</code>, flag <code>0x7E</code>. Before each frame send the Buffer Status Query
   <code>7E 00 7E</code> and wait until the hub reports enough free space (a control frame with a 16-bit little-endian
   count). Send host bytes at least 100 µs apart (section 1.2.3.1).</li>
-<li><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/inc/bno08x_shtp_uart.hpp"><code>bno08x_shtp_uart.hpp</code></a> does the framing without platform code:
+<li><a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/inc/bno08x_shtp_uart.hpp"><code>bno08x_shtp_uart.hpp</code></a> does the framing without platform code:
   <code>EncodeFrame()</code> for writes and <code>FrameDecoder</code> for every received byte. Return 0 from <code>Write()</code> while you
   wait for the buffer status; the SH-2 library keeps calling <code>Read()</code> meanwhile.</li>
 </ul>
@@ -1498,16 +1498,16 @@ change them.</p>
 </tbody>
 </table>
 <h2 id="reference-implementation">Reference implementation<a class="headerlink" href="#reference-implementation" title="Permanent link">&para;</a></h2>
-<p>The ESP32 examples use <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/main/esp32_bno08x_bus.hpp"><code>esp32_bno08x_bus.hpp</code></a>, an ESP-IDF
+<p>The ESP32 examples use <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/main/esp32_bno08x_bus.hpp"><code>esp32_bno08x_bus.hpp</code></a>, an ESP-IDF
 <code>i2c_master</code> port with H_INTN, NRST and the I2C address hooks,
-<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/main/esp32_bno08x_spi_bus.hpp"><code>esp32_bno08x_spi_bus.hpp</code></a> for SPI,
-<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/main/esp32_bno08x_uart_bus.hpp"><code>esp32_bno08x_uart_bus.hpp</code></a> for UART-SHTP and
-<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/examples/esp32/main/esp32_uart_rvc_bus.hpp"><code>esp32_uart_rvc_bus.hpp</code></a> for UART-RVC. Start from them for an
+<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/main/esp32_bno08x_spi_bus.hpp"><code>esp32_bno08x_spi_bus.hpp</code></a> for SPI,
+<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/main/esp32_bno08x_uart_bus.hpp"><code>esp32_bno08x_uart_bus.hpp</code></a> for UART-SHTP and
+<a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/examples/esp32/main/esp32_uart_rvc_bus.hpp"><code>esp32_uart_rvc_bus.hpp</code></a> for UART-RVC. Start from them for an
 ESP-IDF target. The I2C reference reads the whole 1024-byte buffer on every
 <code>Read()</code>; the header-first read on this page moves far fewer bytes.</p>
 <h2 id="check-your-port">Check your port<a class="headerlink" href="#check-your-port" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Build it: both ports on this page are compiled by the host CI from <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/800bebb180ea3101e0ab7960c4387889cd3fc224/tests/docs/my_i2c.hpp"><code>tests/docs/</code></a>,
+<li>Build it: both ports on this page are compiled by the host CI from <a href="https://github.com/hardfoc/hf-bno08x-driver/blob/45d4bfde70338747d52b0a21eda3309c372d701a/tests/docs/my_i2c.hpp"><code>tests/docs/</code></a>,
    with the driver instantiated over them.</li>
 <li>Watch H_INTN after <code>HardwareReset()</code>: it goes low about 94 ms after NRST rises when the strapping is right.</li>
 <li><code>Begin()</code> returns <code>true</code>: the SH-2 library received the hub's reset message and a reply to a command.</li>
