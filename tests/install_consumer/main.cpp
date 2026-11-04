@@ -45,10 +45,10 @@ public:
 int main() {
   InstalledPort port;
   BNO085<InstalledPort> imu(port);
-  // Begin() and Dfu() pull in the SH-2 library and the DFU firmware stub from the installed
+  // Begin() and Dfu(firmware) pull in the SH-2 library and the DFU placeholder image from the installed
   // archive.
   const bool started = imu.Begin();
   bno08x::shtp_uart::FrameDecoder<16> decoder;
-  return (started ? 1 : 0) + imu.Dfu() + (GetBNO08xDriverVersion()[0] == '\0' ? 1 : 0) +
+  return (started ? 1 : 0) + imu.Dfu(firmware) + (GetBNO08xDriverVersion()[0] == '\0' ? 1 : 0) +
          static_cast<int>(decoder.Push(bno08x::shtp_uart::FLAG));
 }

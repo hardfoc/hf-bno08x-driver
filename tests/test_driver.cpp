@@ -16,7 +16,7 @@ TEST_CASE("SH-2 calls are refused on a UART-RVC transport") {
   CHECK(!imu.Begin());
   CHECK_EQ(imu.GetLastError(), SH2_ERR_BAD_PARAM);
   CHECK_EQ(bus.opens, 0);
-  CHECK_EQ(imu.Dfu(), SH2_ERR_BAD_PARAM);
+  CHECK_EQ(imu.Dfu(firmware), SH2_ERR_BAD_PARAM);
   CHECK(!imu.EnterBootloader());
 }
 
@@ -68,7 +68,7 @@ TEST_CASE("EnterBootloader() holds BOOTN across a reset, then releases it") {
 TEST_CASE("Dfu() refuses the compiled-in stub image before sending anything") {
   MockBus bus(BNO085Interface::I2C);
   BNO085<MockBus> imu(bus);
-  CHECK_EQ(imu.Dfu(), SH2_ERR_BAD_PARAM); // the stub is 64 bytes; a real image is at least 1024
+  CHECK_EQ(imu.Dfu(firmware), SH2_ERR_BAD_PARAM); // the placeholder is never sent
   CHECK(bus.written.empty());
   CHECK(imu.GetState() == BNO085DriverState::Closed);
 }
